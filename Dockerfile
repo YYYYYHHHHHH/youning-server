@@ -26,7 +26,7 @@ RUN npm run build
 # RUN pnpm run build
 
 # 暴露应用程序运行的端口
-EXPOSE 3000
+EXPOSE 3999
 
 # 启动应用程序
 CMD ["npm", "run", "start:prod"]
