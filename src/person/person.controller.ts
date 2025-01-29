@@ -8,9 +8,10 @@ import {
   Put,
   NotFoundException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { PersonService } from './person.service';
 import { Person } from './person.entity';
+import { CreatePersonDto } from './person.dto';
 
 @ApiTags('persons')
 @Controller('persons')
@@ -39,15 +40,33 @@ export class PersonController {
   @Post()
   @ApiOperation({ summary: '创建人员' })
   @ApiResponse({ status: 201, description: '成功创建人员' })
-  create(@Body() person: Person): Promise<Person> {
-    return this.personService.create(person);
+  @ApiResponse({ status: 400, description: '请求参数验证失败' })
+  @ApiBody({
+    description: '创建人员请求示例',
+    schema: {
+      example: {
+        name: '张三',
+        tel: '13800138000',
+        identityId: '330100200001011234',
+        icon: 'http://example.com/avatar.jpg',
+        authority: 'user',
+        createTime: '2024-01-25T08:00:00Z',
+        createBy: 1,
+      },
+    },
+  })
+  create(@Body() createPersonDto: CreatePersonDto): Promise<Person> {
+    return this.personService.create(createPersonDto);
   }
 
   @Put(':id')
   @ApiOperation({ summary: '更新人员信息' })
   @ApiResponse({ status: 200, description: '成功更新人员' })
   @ApiResponse({ status: 404, description: '人员未找到' })
-  async update(@Param('id') id: string, @Body() person: Person): Promise<Person> {
+  async update(
+    @Param('id') id: string,
+    @Body() person: Person,
+  ): Promise<Person> {
     const updatedPerson = await this.personService.update(+id, person);
     if (!updatedPerson) {
       throw new NotFoundException(`Person with ID ${id} not found`);

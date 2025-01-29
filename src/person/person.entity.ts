@@ -3,7 +3,7 @@ import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 @Entity()
 export class Person {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id?: number;
 
   @Column({ length: 100 })
   name!: string;
@@ -20,7 +20,7 @@ export class Person {
   @Column({ length: 100, nullable: true })
   authority?: string;
 
-  @Column('datetime', { nullable: true })
+  @Column('datetime')
   createTime?: Date;
 
   @Column({ nullable: true })

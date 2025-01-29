@@ -1,7 +1,17 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Put,
+  NotFoundException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ProjectService } from './project.service';
 import { Project } from './project.entity';
+import { CreateProjectDto } from './create-project.dto';
 
 @ApiTags('projects')
 @Controller('projects')
@@ -30,7 +40,7 @@ export class ProjectController {
   @Post()
   @ApiOperation({ summary: '创建项目' })
   @ApiResponse({ status: 201, description: '成功创建项目' })
-  create(@Body() project: Project): Promise<Project> {
+  create(@Body() project: CreateProjectDto): Promise<Project> {
     return this.projectService.create(project);
   }
 
@@ -38,7 +48,10 @@ export class ProjectController {
   @ApiOperation({ summary: '更新项目信息' })
   @ApiResponse({ status: 200, description: '成功更新项目' })
   @ApiResponse({ status: 404, description: '项目未找到' })
-  async update(@Param('id') id: string, @Body() project: Project): Promise<Project> {
+  async update(
+    @Param('id') id: string,
+    @Body() project: Project,
+  ): Promise<Project> {
     const updatedProject = await this.projectService.update(+id, project);
     if (!updatedProject) {
       throw new NotFoundException(`Project with ID ${id} not found`);
@@ -52,4 +65,4 @@ export class ProjectController {
   remove(@Param('id') id: string): Promise<void> {
     return this.projectService.remove(+id);
   }
-} 
+}

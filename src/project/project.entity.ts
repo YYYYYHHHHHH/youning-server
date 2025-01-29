@@ -3,26 +3,26 @@ import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
 @Entity()
 export class Project {
   @PrimaryGeneratedColumn()
-  id!: number;
+  id?: number;
 
   @Column({ length: 100, nullable: true })
-  name: string;
+  name?: string;
 
   @Column({ length: 200, nullable: true })
-  location: string;
+  location?: string;
 
   @Column('datetime', { nullable: true })
-  startTime: Date;
+  startTime?: Date;
 
   @Column('datetime', { nullable: true })
-  endTime: Date;
+  endTime?: Date;
 
   @Column({ length: 150, nullable: true })
-  icon: string;
+  icon?: string;
 
   @Column('datetime', { nullable: true })
-  createTime: Date;
+  createTime?: Date;
 
   @Column({ nullable: true })
-  createBy: number;
+  createBy?: number;
 }
