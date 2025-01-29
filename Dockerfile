@@ -10,9 +10,9 @@ COPY package*.json ./
 # COPY pnpm-lock.yaml ./
 
 # 安装项目依赖
-RUN npm install
+# RUN npm install
 # 如果您使用的是 pnpm，请使用以下行替换上面的行
-# RUN npm install -g pnpm && pnpm install
+RUN npm install -g pnpm && pnpm install
 
 # 复制项目文件到工作目录
 COPY . .
