@@ -10,7 +10,6 @@ import { StoreHistoryRecordModule } from './store-history-record/store-history-r
 import { StoreMaterialModule } from './store-material/store-material.module';
 import { MediaModule } from './media/media.module';
 import { ProjectModule } from './project/project.module';
-import { SeedService } from './seed.service';
 
 @Module({
   imports: [
@@ -35,6 +34,5 @@ import { SeedService } from './seed.service';
     MediaModule,
     ProjectModule,
   ],
-  providers: [SeedService],
 })
 export class AppModule {}
