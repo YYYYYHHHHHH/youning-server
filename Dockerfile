@@ -9,6 +9,9 @@ COPY package*.json ./
 # 如果您使用的是 pnpm，请使用以下行替换上面的行
 # COPY pnpm-lock.yaml ./
 
+# 设置 npm 源
+RUN npm config set registry https://registry.npm.taobao.org/
+
 # 安装项目依赖
 # RUN npm install
 # 如果您使用的是 pnpm，请使用以下行替换上面的行
