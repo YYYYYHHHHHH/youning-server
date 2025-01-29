@@ -5,24 +5,27 @@ export class Person {
   @PrimaryGeneratedColumn()
   id?: number;
 
-  @Column({ length: 100 })
+  @Column({ type: 'varchar', length: 100 })
   name!: string;
 
-  @Column({ length: 100 })
+  @Column({ type: 'varchar', length: 100 })
   tel!: string;
 
-  @Column({ length: 150, nullable: true })
-  icon?: string;
+  @Column({ type: 'varchar', length: 100 })
+  bankCard!: string;
 
-  @Column({ length: 50 })
+  @Column({ type: 'varchar', length: 50 })
   identityId!: string;
 
-  @Column({ length: 100, nullable: true })
-  authority?: string;
+  @Column({ type: 'varchar', length: 150, nullable: true })
+  icon?: string;
 
-  @Column('datetime')
-  createTime?: Date;
+  @Column({ type: 'varchar', length: 100 })
+  authority!: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'datetime' })
+  createTime!: Date;
+
+  @Column({ type: 'int', nullable: true })
   createBy?: number;
 }

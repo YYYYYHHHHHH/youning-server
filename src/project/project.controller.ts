@@ -11,7 +11,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ProjectService } from './project.service';
 import { Project } from './project.entity';
-import { CreateProjectDto } from './create-project.dto';
+import { CreateProjectDto } from './project.dto';
 
 @ApiTags('projects')
 @Controller('projects')
@@ -50,7 +50,7 @@ export class ProjectController {
   @ApiResponse({ status: 404, description: '项目未找到' })
   async update(
     @Param('id') id: string,
-    @Body() project: Project,
+    @Body() project: CreateProjectDto,
   ): Promise<Project> {
     const updatedProject = await this.projectService.update(+id, project);
     if (!updatedProject) {

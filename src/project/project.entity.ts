@@ -5,24 +5,24 @@ export class Project {
   @PrimaryGeneratedColumn()
   id?: number;
 
-  @Column({ length: 100, nullable: true })
-  name?: string;
+  @Column({ type: 'varchar', length: 100 })
+  name: string;
 
-  @Column({ length: 200, nullable: true })
+  @Column({ type: 'varchar', length: 200, nullable: true })
   location?: string;
 
-  @Column('datetime', { nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   startTime?: Date;
 
-  @Column('datetime', { nullable: true })
+  @Column({ type: 'datetime', nullable: true })
   endTime?: Date;
 
-  @Column({ length: 150, nullable: true })
+  @Column({ type: 'varchar', length: 150, nullable: true })
   icon?: string;
 
-  @Column('datetime', { nullable: true })
-  createTime?: Date;
+  @Column({ type: 'datetime' })
+  createTime!: Date;
 
-  @Column({ nullable: true })
-  createBy?: number;
+  @Column({ type: 'int' })
+  createBy!: number;
 }
