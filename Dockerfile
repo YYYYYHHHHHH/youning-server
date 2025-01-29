@@ -10,7 +10,7 @@ COPY package*.json ./
 # COPY pnpm-lock.yaml ./
 
 # 设置 npm 源
-RUN npm config set registry https://mirrors.cloud.tencent.com/npm/
+RUN npm config set registry  https://registry.npmmirror.com
 
 # 安装项目依赖
 # RUN npm install
