@@ -4,6 +4,7 @@ import {
   IsDate,
   IsNumber,
   Length,
+  IsNotEmpty,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
@@ -45,18 +46,41 @@ export class CreateProjectDto {
   endTime?: Date;
 
   @ApiProperty({
-    description: '项目图标',
+    description: '媒体ID',
+    required: true,
+    example: 1,
+  })
+  @IsNotEmpty({ message: '媒体ID不能为空' })
+  @IsNumber({}, { message: '媒体ID必须是数字' })
+  mediaId: number;
+
+  @ApiProperty({
+    description: '备注',
     required: false,
-    example: 'https://example.com/icon.png',
+    example: '这是一个测试项目的备注',
   })
   @IsOptional()
-  @IsString({ message: '项目图标必须是字符串' })
-  @Length(0, 150, { message: '项目图标长度不能超过150' })
-  icon?: string;
+  @IsString({ message: '备注必须是字符串' })
+  @Length(0, 500, { message: '备注长度不能超过500' })
+  remark?: string;
 
-  @ApiProperty({ description: '创建人ID', required: true, example: 1 })
+  @ApiProperty({
+    description: '负责人ID',
+    required: true,
+    example: 1,
+  })
+  @IsNotEmpty({ message: '负责人ID不能为空' })
+  @IsNumber({}, { message: '负责人ID必须是数字' })
+  managerId: number;
+
+  @ApiProperty({
+    description: '创建人ID',
+    required: true,
+    example: 1,
+  })
+  @IsNotEmpty({ message: '创建人ID不能为空' })
   @IsNumber({}, { message: '创建人ID必须是数字' })
-  createBy: number;
+  createById: number;
 
   @ApiProperty({
     description: '创建时间',
@@ -66,4 +90,14 @@ export class CreateProjectDto {
   @IsDate({ message: '创建时间必须是有效的日期格式' })
   @Type(() => Date)
   createTime: Date;
+
+  @ApiProperty({
+    description: '负责人',
+    required: false,
+    example: '张三',
+  })
+  @IsOptional()
+  @IsString({ message: '负责人必须是字符串' })
+  @Length(0, 100, { message: '负责人长度不能超过100' })
+  manager?: string;
 }

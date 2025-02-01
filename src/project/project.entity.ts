@@ -1,4 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Media } from '../media/media.entity';
+import { Person } from '../person/person.entity';
 
 @Entity()
 export class Project {
@@ -17,12 +25,21 @@ export class Project {
   @Column({ type: 'datetime', nullable: true })
   endTime?: Date;
 
-  @Column({ type: 'varchar', length: 150, nullable: true })
-  icon?: string;
+  @OneToOne(() => Media)
+  @JoinColumn({ name: 'mediaId' })
+  media?: Media;
+
+  @OneToOne(() => Person)
+  @JoinColumn({ name: 'managerId' })
+  manager?: Person;
+
+  @OneToOne(() => Person)
+  @JoinColumn({ name: 'createById' })
+  createBy?: Person;
 
   @Column({ type: 'datetime' })
   createTime!: Date;
 
-  @Column({ type: 'int' })
-  createBy!: number;
+  @Column({ type: 'varchar', length: 500, nullable: true })
+  remark?: string;
 }

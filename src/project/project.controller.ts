@@ -8,7 +8,7 @@ import {
   Put,
   NotFoundException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { ProjectService } from './project.service';
 import { Project } from './project.entity';
 import { CreateProjectDto } from './project.dto';
@@ -40,19 +40,24 @@ export class ProjectController {
   @Post()
   @ApiOperation({ summary: '创建项目' })
   @ApiResponse({ status: 201, description: '成功创建项目' })
-  create(@Body() project: CreateProjectDto): Promise<Project> {
-    return this.projectService.create(project);
+  @ApiBody({ type: CreateProjectDto })
+  create(@Body() createProjectDto: CreateProjectDto): Promise<Project> {
+    return this.projectService.create(createProjectDto);
   }
 
   @Put(':id')
   @ApiOperation({ summary: '更新项目信息' })
   @ApiResponse({ status: 200, description: '成功更新项目' })
   @ApiResponse({ status: 404, description: '项目未找到' })
+  @ApiBody({ type: CreateProjectDto })
   async update(
     @Param('id') id: string,
-    @Body() project: CreateProjectDto,
+    @Body() updateProjectDto: CreateProjectDto,
   ): Promise<Project> {
-    const updatedProject = await this.projectService.update(+id, project);
+    const updatedProject = await this.projectService.update(
+      +id,
+      updateProjectDto,
+    );
     if (!updatedProject) {
       throw new NotFoundException(`Project with ID ${id} not found`);
     }

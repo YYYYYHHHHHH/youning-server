@@ -1,19 +1,33 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Person } from '../person/person.entity';
 
 @Entity()
 export class Media {
   @PrimaryGeneratedColumn()
-  id: number;
+  id?: number;
 
   @Column({ length: 100, nullable: true })
-  mediaType: string;
+  mediaType?: string;
 
   @Column({ length: 200, nullable: true })
-  uri: string;
+  uri?: string;
 
   @Column('datetime', { nullable: true })
-  createTime: Date;
+  createTime?: Date;
 
   @Column({ length: 200, nullable: true })
-  location: string;
-} 
+  location?: string;
+
+  @Column({ length: 500, nullable: true })
+  originalName?: string;
+
+  @OneToOne(() => Person)
+  @JoinColumn()
+  createBy?: Person;
+}

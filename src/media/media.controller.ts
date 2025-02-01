@@ -1,5 +1,23 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, NotFoundException } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Put,
+  NotFoundException,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiConsumes,
+  ApiBody,
+} from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { MediaService } from './media.service';
 import { Media } from './media.entity';
 
@@ -27,11 +45,29 @@ export class MediaController {
     return media;
   }
 
-  @Post()
-  @ApiOperation({ summary: '创建媒体' })
-  @ApiResponse({ status: 201, description: '成功创建媒体' })
-  create(@Body() media: Media): Promise<Media> {
-    return this.mediaService.create(media);
+  @Post('upload')
+  @ApiOperation({ summary: '上传媒体文件' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: '媒体文件上传',
+    type: 'multipart/form-data',
+    examples: {
+      example1: {
+        summary: '示例媒体文件上传',
+        value: {
+          file: 'example.jpg', // 这是一个示例文件名，实际上传时会是文件本身
+          creatorId: 1, // 示例创建人ID
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiResponse({ status: 201, description: '成功上传媒体文件' })
+  async uploadFile(
+    @UploadedFile() file: any,
+    @Body('creatorId') creatorId: number,
+  ): Promise<Media> {
+    return this.mediaService.create(file, creatorId);
   }
 
   @Put(':id')
@@ -52,4 +88,4 @@ export class MediaController {
   remove(@Param('id') id: string): Promise<void> {
     return this.mediaService.remove(+id);
   }
-} 
+}
