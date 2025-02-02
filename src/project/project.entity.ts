@@ -4,6 +4,7 @@ import {
   Column,
   OneToOne,
   JoinColumn,
+  ManyToOne,
 } from 'typeorm';
 import { Media } from '../media/media.entity';
 import { Person } from '../person/person.entity';
@@ -29,11 +30,11 @@ export class Project {
   @JoinColumn({ name: 'mediaId' })
   media?: Media;
 
-  @OneToOne(() => Person)
+  @ManyToOne(() => Person)
   @JoinColumn({ name: 'managerId' })
   manager?: Person;
 
-  @OneToOne(() => Person)
+  @ManyToOne(() => Person)
   @JoinColumn({ name: 'createById' })
   createBy?: Person;
 

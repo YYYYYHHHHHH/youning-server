@@ -90,14 +90,4 @@ export class CreateProjectDto {
   @IsDate({ message: '创建时间必须是有效的日期格式' })
   @Type(() => Date)
   createTime: Date;
-
-  @ApiProperty({
-    description: '负责人',
-    required: false,
-    example: '张三',
-  })
-  @IsOptional()
-  @IsString({ message: '负责人必须是字符串' })
-  @Length(0, 100, { message: '负责人长度不能超过100' })
-  manager?: string;
 }

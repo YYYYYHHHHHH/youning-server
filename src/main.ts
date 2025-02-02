@@ -23,6 +23,8 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3999);
+  // 根据环境变量设置端口
+  const port = process.env.NODE_ENV === 'production' ? 3999 : 8080;
+  await app.listen(port);
 }
 bootstrap();
