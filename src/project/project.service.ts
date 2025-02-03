@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from './project.entity';
 import { CreateProjectDto } from './project.dto';
 import { Media } from '../media/media.entity';
 import { Person } from '../person/person.entity';
+import { BusinessException } from '../common/exceptions/business.exception';
 
 @Injectable()
 export class ProjectService {
@@ -72,29 +73,40 @@ export class ProjectService {
     });
 
     if (!project) {
-      throw new Error('Project not found');
+      throw new BusinessException(
+        `Project with ID ${id} not found`,
+        HttpStatus.NOT_FOUND,
+      );
     }
 
-    // 查找关联实体
     const media = await this.mediaRepository.findOneBy({
       id: updateProjectDto.mediaId,
     });
     if (!media) {
-      throw new Error('Media not found');
+      throw new BusinessException(
+        `Media with ID ${updateProjectDto.mediaId} not found`,
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     const manager = await this.personRepository.findOneBy({
       id: updateProjectDto.managerId,
     });
     if (!manager) {
-      throw new Error('Manager not found');
+      throw new BusinessException(
+        `Manager with ID ${updateProjectDto.managerId} not found`,
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     const createBy = await this.personRepository.findOneBy({
       id: updateProjectDto.createById,
     });
     if (!createBy) {
-      throw new Error('Creator not found');
+      throw new BusinessException(
+        `Creator with ID ${updateProjectDto.createById} not found`,
+        HttpStatus.NOT_FOUND,
+      );
     }
 
     // 更新项目基本信息
