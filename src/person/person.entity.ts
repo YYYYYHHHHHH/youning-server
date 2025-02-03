@@ -2,7 +2,7 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  OneToOne,
+  ManyToOne,
   JoinColumn,
 } from 'typeorm';
 import { Media } from '../media/media.entity';
@@ -24,7 +24,7 @@ export class Person {
   @Column({ type: 'varchar', length: 50 })
   identityId!: string;
 
-  @OneToOne(() => Media)
+  @ManyToOne(() => Media)
   @JoinColumn()
   icon?: Media;
 

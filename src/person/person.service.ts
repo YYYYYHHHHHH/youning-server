@@ -29,16 +29,6 @@ export class PersonService {
     const person = new Person();
     Object.assign(person, createPersonDto);
 
-    if (createPersonDto.icon) {
-      const media = await this.mediaRepository.findOneBy({
-        id: createPersonDto.icon,
-      });
-      if (!media) {
-        throw new Error('Media not found');
-      }
-      person.icon = media;
-    }
-
     return this.personRepository.save(person);
   }
 

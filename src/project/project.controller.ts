@@ -54,6 +54,7 @@ export class ProjectController {
     @Param('id') id: string,
     @Body() updateProjectDto: CreateProjectDto,
   ): Promise<Project> {
+    console.log(updateProjectDto);
     const updatedProject = await this.projectService.update(
       +id,
       updateProjectDto,

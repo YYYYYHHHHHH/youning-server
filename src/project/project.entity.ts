@@ -2,7 +2,6 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  OneToOne,
   JoinColumn,
   ManyToOne,
 } from 'typeorm';
@@ -26,7 +25,7 @@ export class Project {
   @Column({ type: 'datetime', nullable: true })
   endTime?: Date;
 
-  @OneToOne(() => Media)
+  @ManyToOne(() => Media)
   @JoinColumn({ name: 'mediaId' })
   media?: Media;
 

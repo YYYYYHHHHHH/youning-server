@@ -31,6 +31,7 @@ export class ProjectService {
   }
 
   async create(createProjectDto: CreateProjectDto): Promise<Project> {
+    console.log(createProjectDto);
     const media = await this.mediaRepository.findOneBy({
       id: createProjectDto.mediaId,
     });
@@ -65,6 +66,16 @@ export class ProjectService {
     id: number,
     updateProjectDto: CreateProjectDto,
   ): Promise<Project | null> {
+    const project = await this.projectRepository.findOne({
+      where: { id },
+      relations: ['media', 'manager', 'createBy'],
+    });
+
+    if (!project) {
+      throw new Error('Project not found');
+    }
+
+    // 查找关联实体
     const media = await this.mediaRepository.findOneBy({
       id: updateProjectDto.mediaId,
     });
@@ -86,12 +97,22 @@ export class ProjectService {
       throw new Error('Creator not found');
     }
 
-    await this.projectRepository.update(id, {
-      ...updateProjectDto,
-      media,
-      manager,
-      createBy,
-    });
+    // 更新项目基本信息
+    project.name = updateProjectDto.name;
+    project.location = updateProjectDto.location;
+    project.startTime = updateProjectDto.startTime;
+    project.endTime = updateProjectDto.endTime;
+    project.remark = updateProjectDto.remark;
+    project.createTime = updateProjectDto.createTime;
+
+    // 更新关联实体
+    project.media = media;
+    project.manager = manager;
+    project.createBy = createBy;
+
+    // 保存更新后的实体
+    await this.projectRepository.save(project);
+
     return this.projectRepository.findOne({
       where: { id },
       relations: ['media', 'manager', 'createBy'],
