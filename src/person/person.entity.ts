@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Media } from '../media/media.entity';
 
 @Entity()
 export class Person {
@@ -17,8 +24,9 @@ export class Person {
   @Column({ type: 'varchar', length: 50 })
   identityId!: string;
 
-  @Column({ type: 'varchar', length: 150, nullable: true })
-  icon?: string;
+  @OneToOne(() => Media)
+  @JoinColumn()
+  icon?: Media;
 
   @Column({ type: 'varchar', length: 100 })
   authority!: string;

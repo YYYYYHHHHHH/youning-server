@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Media } from './media.entity';
 import { MediaService } from './media.service';
@@ -8,7 +8,7 @@ import { PersonModule } from '../person/person.module';
 @Module({
   imports: [
     TypeOrmModule.forFeature([Media]),
-    PersonModule,
+    forwardRef(() => PersonModule),
   ],
   providers: [MediaService],
   controllers: [MediaController],

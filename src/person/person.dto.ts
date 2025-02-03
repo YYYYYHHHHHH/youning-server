@@ -3,7 +3,6 @@ import {
   IsString,
   IsOptional,
   IsNumber,
-  IsDate,
   Length,
   Matches,
 } from 'class-validator';
@@ -30,11 +29,11 @@ export class CreatePersonDto {
 
   @ApiPropertyOptional({
     description: '头像',
-    example: 'http://example.com/icon.png',
+    example: 1, // 示例为 Media 的 ID
   })
   @IsOptional()
-  @IsString({ message: '头像必须是字符串' })
-  icon?: string;
+  @IsNumber({}, { message: '头像ID必须是数字' })
+  icon?: number;
 
   @ApiPropertyOptional({ description: '权限', example: '带班工人' })
   @IsNotEmpty({ message: '权限不能为空' })

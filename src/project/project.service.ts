@@ -18,7 +18,9 @@ export class ProjectService {
   ) {}
 
   findAll(): Promise<Project[]> {
-    return this.projectRepository.find({ relations: ['media', 'manager', 'createBy'] });
+    return this.projectRepository.find({
+      relations: ['media', 'manager', 'createBy'],
+    });
   }
 
   findOne(id: number): Promise<Project | null> {
