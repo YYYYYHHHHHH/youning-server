@@ -11,4 +11,4 @@ export class Store {
 
   @ManyToOne(() => Project, { nullable: true })
   project?: Project;
-} 
+}

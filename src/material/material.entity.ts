@@ -1,4 +1,12 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Media } from '../media/media.entity';
+import { Person } from '../person/person.entity';
 
 @Entity()
 export class Material {
@@ -8,8 +16,9 @@ export class Material {
   @Column({ length: 100 })
   name!: string;
 
-  @Column({ length: 150 })
-  icon!: string;
+  @ManyToOne(() => Media)
+  @JoinColumn()
+  icon!: Media;
 
   @Column({ length: 100 })
   unit!: string;
@@ -17,6 +26,7 @@ export class Material {
   @Column('datetime')
   createTime!: Date;
 
-  @Column()
-  createBy!: number;
-} 
+  @ManyToOne(() => Person)
+  @JoinColumn()
+  createBy!: Person;
+}
