@@ -5,6 +5,7 @@ import { Project } from './project.entity';
 import { CreateProjectDto } from './project.dto';
 import { Media } from '../media/media.entity';
 import { Person } from '../person/person.entity';
+import { Store } from '../store/store.entity';
 import { BusinessException } from '../common/exceptions/business.exception';
 
 @Injectable()
@@ -16,6 +17,8 @@ export class ProjectService {
     private mediaRepository: Repository<Media>,
     @InjectRepository(Person)
     private personRepository: Repository<Person>,
+    @InjectRepository(Store)
+    private storeRepository: Repository<Store>,
   ) {}
 
   findAll(): Promise<Project[]> {
@@ -32,35 +35,82 @@ export class ProjectService {
   }
 
   async create(createProjectDto: CreateProjectDto): Promise<Project> {
-    console.log(createProjectDto);
-    const media = await this.mediaRepository.findOneBy({
-      id: createProjectDto.mediaId,
-    });
-    if (!media) {
-      throw new Error('Media not found');
-    }
+    // 开启事务
+    const queryRunner = this.projectRepository.manager.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    const manager = await this.personRepository.findOneBy({
-      id: createProjectDto.managerId,
-    });
-    if (!manager) {
-      throw new Error('Manager not found');
-    }
+    try {
+      // 1. 查找并验证关联实体
+      const media = await this.mediaRepository.findOneBy({
+        id: createProjectDto.mediaId,
+      });
+      if (!media) {
+        throw new BusinessException(
+          `Media with ID ${createProjectDto.mediaId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
 
-    const createBy = await this.personRepository.findOneBy({
-      id: createProjectDto.createById,
-    });
-    if (!createBy) {
-      throw new Error('Creator not found');
-    }
+      const manager = await this.personRepository.findOneBy({
+        id: createProjectDto.managerId,
+      });
+      if (!manager) {
+        throw new BusinessException(
+          `Manager with ID ${createProjectDto.managerId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
 
-    const project = this.projectRepository.create({
-      ...createProjectDto,
-      media,
-      manager,
-      createBy,
-    });
-    return this.projectRepository.save(project);
+      const createBy = await this.personRepository.findOneBy({
+        id: createProjectDto.createById,
+      });
+      if (!createBy) {
+        throw new BusinessException(
+          `Creator with ID ${createProjectDto.createById} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      // 2. 创建项目
+      const project = this.projectRepository.create({
+        ...createProjectDto,
+        media,
+        manager,
+        createBy,
+      });
+      const savedProject = await queryRunner.manager.save(Project, project);
+
+      // 3. 创建关联的仓库
+      const store = this.storeRepository.create({
+        name: `${project.name}仓库`, // 使用项目名称作为仓库名称
+        project: savedProject,
+      });
+      await queryRunner.manager.save(Store, store);
+
+      // 提交事务
+      await queryRunner.commitTransaction();
+
+      // 返回包含完整关联信息的项目
+      const result = await this.projectRepository.findOne({
+        where: { id: savedProject.id },
+        relations: ['media', 'manager', 'createBy'],
+      });
+      if (!result) {
+        throw new BusinessException(
+          `Project with ID ${savedProject.id} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      return result;
+    } catch (error) {
+      // 如果出错，回滚事务
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      // 释放查询运行器
+      await queryRunner.release();
+    }
   }
 
   async update(
