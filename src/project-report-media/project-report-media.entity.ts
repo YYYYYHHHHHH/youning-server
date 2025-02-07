@@ -1,15 +1,17 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { ProjectReport } from '../project-report/project-report.entity';
 import { Media } from '../media/media.entity';
 
 @Entity()
 export class ProjectReportMedia {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @ManyToOne(() => ProjectReport)
-  projectReport: ProjectReport;
+  @JoinColumn()
+  projectReport!: ProjectReport;
 
   @ManyToOne(() => Media)
-  media: Media;
-} 
+  @JoinColumn()
+  media!: Media;
+}
