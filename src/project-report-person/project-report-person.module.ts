@@ -9,4 +9,4 @@ import { ProjectReportPersonController } from './project-report-person.controlle
   providers: [ProjectReportPersonService],
   controllers: [ProjectReportPersonController],
 })
-export class ProjectReportPersonModule {} 
+export class ProjectReportPersonModule {}
