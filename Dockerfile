@@ -5,9 +5,9 @@ FROM node:18
 WORKDIR /usr/src/app
 
 # 复制 package.json 和 package-lock.json 或 pnpm-lock.yaml
-COPY package*.json ./
+# COPY package*.json ./
 # 如果您使用的是 pnpm，请使用以下行替换上面的行
-# COPY pnpm-lock.yaml ./
+COPY pnpm-lock.yaml ./
 
 # 设置 npm 源
 RUN npm config set registry  https://registry.npmmirror.com
