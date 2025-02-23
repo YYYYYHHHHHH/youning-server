@@ -109,4 +109,4 @@ export class StoreService {
     }
     await this.storeRepository.delete(id);
   }
-} 
+}

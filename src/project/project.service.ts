@@ -36,7 +36,8 @@ export class ProjectService {
 
   async create(createProjectDto: CreateProjectDto): Promise<Project> {
     // 开启事务
-    const queryRunner = this.projectRepository.manager.connection.createQueryRunner();
+    const queryRunner =
+      this.projectRepository.manager.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 

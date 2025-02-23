@@ -38,7 +38,9 @@ export class ProjectReportService {
     return projectReport;
   }
 
-  async create(createProjectReportDto: CreateProjectReportDto): Promise<ProjectReport> {
+  async create(
+    createProjectReportDto: CreateProjectReportDto,
+  ): Promise<ProjectReport> {
     const projectReport = new ProjectReport();
 
     // 查找并设置项目
@@ -138,4 +140,4 @@ export class ProjectReportService {
     }
     await this.projectReportRepository.delete(id);
   }
-} 
+}

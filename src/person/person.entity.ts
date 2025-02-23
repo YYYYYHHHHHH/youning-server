@@ -6,34 +6,34 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Media } from '../media/media.entity';
+import { Authority } from './person.enum';
 
 @Entity()
 export class Person {
   @PrimaryGeneratedColumn()
-  id?: number;
+  id!: number;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ length: 50 })
   name!: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  tel!: string;
+  @Column({ length: 100 })
+  password!: string;
 
-  @Column({ type: 'varchar', length: 100 })
-  bankCard!: string;
+  @Column({
+    type: 'enum',
+    enum: Authority,
+    comment:
+      '权限：SALES-销售,SITE_MANAGER-工地负责人,WORKER-工人,ADMIN-管理员',
+  })
+  authority!: Authority;
 
-  @Column({ type: 'varchar', length: 50 })
-  identityId!: string;
+  @Column({ length: 20, nullable: true })
+  phone?: string;
 
   @ManyToOne(() => Media)
   @JoinColumn()
   icon?: Media;
 
-  @Column({ type: 'varchar', length: 100 })
-  authority!: string;
-
-  @Column({ type: 'datetime' })
-  createTime!: Date;
-
-  @Column({ type: 'int', nullable: true })
-  createBy?: number;
+  @Column({ length: 500, nullable: true })
+  remark?: string;
 }

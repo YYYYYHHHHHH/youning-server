@@ -15,4 +15,4 @@ import { ProjectModule } from '../project/project.module';
   controllers: [StoreController],
   exports: [TypeOrmModule, StoreService],
 })
-export class StoreModule {} 
+export class StoreModule {}

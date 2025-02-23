@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Param, Delete, Put, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Put,
+  NotFoundException,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { StoreMaterialService } from './store-material.service';
 import { StoreMaterial } from './store-material.entity';
@@ -38,8 +47,14 @@ export class StoreMaterialController {
   @ApiOperation({ summary: '更新商店材料信息' })
   @ApiResponse({ status: 200, description: '成功更新商店材料' })
   @ApiResponse({ status: 404, description: '商店材料未找到' })
-  async update(@Param('id') id: string, @Body() storeMaterial: StoreMaterial): Promise<StoreMaterial> {
-    const updatedStoreMaterial = await this.storeMaterialService.update(+id, storeMaterial);
+  async update(
+    @Param('id') id: string,
+    @Body() storeMaterial: StoreMaterial,
+  ): Promise<StoreMaterial> {
+    const updatedStoreMaterial = await this.storeMaterialService.update(
+      +id,
+      storeMaterial,
+    );
     if (!updatedStoreMaterial) {
       throw new NotFoundException(`StoreMaterial with ID ${id} not found`);
     }
@@ -52,4 +67,4 @@ export class StoreMaterialController {
   remove(@Param('id') id: string): Promise<void> {
     return this.storeMaterialService.remove(+id);
   }
-} 
+}

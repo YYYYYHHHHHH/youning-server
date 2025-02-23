@@ -2,59 +2,69 @@ import {
   IsNotEmpty,
   IsString,
   IsOptional,
-  IsNumber,
+  IsEnum,
   Length,
   Matches,
 } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
+import { Authority } from './person.enum';
 
 export class CreatePersonDto {
-  @ApiProperty({ description: '姓名', example: '张三' })
+  @ApiProperty({
+    description: '人员姓名',
+    example: '张三',
+  })
   @IsNotEmpty({ message: '姓名不能为空' })
   @IsString({ message: '姓名必须是字符串' })
+  @Length(2, 50, { message: '姓名长度必须在2-50之间' })
   name!: string;
 
-  @ApiProperty({ description: '电话号码', example: '13800138000' })
-  @IsNotEmpty({ message: '电话号码不能为空' })
-  @IsString({ message: '电话号码必须是字符串' })
-  @Matches(/^[0-9]{10,15}$/, { message: '电话号码格式不正确' })
-  tel!: string;
+  @ApiProperty({
+    description: '密码',
+    example: 'Password123',
+  })
+  @IsNotEmpty({ message: '密码不能为空' })
+  @IsString({ message: '密码必须是字符串' })
+  @Length(6, 100, { message: '密码长度必须在6-100之间' })
+  @Matches(/((?=.*\d)|(?=.*\W+))(?![.\n])(?=.*[A-Z])(?=.*[a-z]).*$/, {
+    message: '密码必须包含大小写字母和数字',
+  })
+  password!: string;
 
-  @ApiProperty({ description: '身份证号', example: '110101199003071234' })
-  @IsNotEmpty({ message: '身份证号不能为空' })
-  @IsString({ message: '身份证号必须是字符串' })
-  @Length(1, 50, { message: '身份证号长度不能超过50个字符' })
-  @Matches(/^[0-9]{15,18}$/, { message: '身份证号格式不正确' })
-  identityId!: string;
+  @ApiProperty({
+    description: '权限',
+    enum: Authority,
+    example: Authority.WORKER,
+  })
+  @IsNotEmpty({ message: '权限不能为空' })
+  @IsEnum(Authority, { message: '无效的权限类型' })
+  authority!: Authority;
 
-  @ApiPropertyOptional({
-    description: '头像',
-    example: 1, // 示例为 Media 的 ID
+  @ApiProperty({
+    description: '手机号',
+    required: false,
+    example: '13800138000',
   })
   @IsOptional()
-  @IsNumber({}, { message: '头像ID必须是数字' })
+  @IsString({ message: '手机号必须是字符串' })
+  @Length(11, 11, { message: '手机号必须是11位' })
+  phone?: string;
+
+  @ApiProperty({
+    description: '头像ID',
+    required: false,
+    example: 1,
+  })
+  @IsOptional()
   icon?: number;
 
-  @ApiPropertyOptional({ description: '权限', example: '带班工人' })
-  @IsNotEmpty({ message: '权限不能为空' })
-  @IsString({ message: '权限必须是字符串' })
-  authority!: string;
-
-  @ApiPropertyOptional({
-    description: '创建时间',
-    example: '2023-01-01T00:00:00Z',
+  @ApiProperty({
+    description: '备注',
+    required: false,
+    example: '这是一个备注',
   })
-  @IsNotEmpty({ message: '创建时间不能为空' })
-  createTime!: Date;
-
-  @ApiPropertyOptional({ description: '创建人ID', example: 1 })
   @IsOptional()
-  @IsNumber({}, { message: '创建人ID必须是数字' })
-  createBy?: number;
-
-  @ApiProperty({ description: '银行卡号', example: '6222020200001234567' })
-  @IsNotEmpty({ message: '银行卡号不能为空' })
-  @IsString({ message: '银行卡号必须是字符串' })
-  @Length(1, 100, { message: '银行卡号长度不能超过100个字符' })
-  bankCard!: string;
+  @IsString({ message: '备注必须是字符串' })
+  @Length(0, 500, { message: '备注长度不能超过500' })
+  remark?: string;
 }

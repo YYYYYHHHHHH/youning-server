@@ -28,4 +28,4 @@ export class CreateProjectReportMediaDto {
   @IsNotEmpty({ message: '媒体ID不能为空' })
   @IsNumber({}, { message: '媒体ID必须是数字' })
   mediaId!: number;
-} 
+}

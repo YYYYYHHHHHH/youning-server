@@ -5,6 +5,7 @@ import { Person } from './person.entity';
 import { Media } from '../media/media.entity';
 import { CreatePersonDto } from './person.dto';
 import { BusinessException } from '../common/exceptions/business.exception';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class PersonService {
@@ -28,8 +29,19 @@ export class PersonService {
 
   async create(createPersonDto: CreatePersonDto): Promise<Person> {
     const person = new Person();
-    Object.assign(person, createPersonDto);
 
+    // 加密密码
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(createPersonDto.password, salt);
+
+    // 设置基本信息
+    person.name = createPersonDto.name;
+    person.password = hashedPassword;
+    person.authority = createPersonDto.authority;
+    person.phone = createPersonDto.phone;
+    person.remark = createPersonDto.remark;
+
+    // 设置头像
     if (createPersonDto.icon) {
       const media = await this.mediaRepository.findOneBy({
         id: createPersonDto.icon,

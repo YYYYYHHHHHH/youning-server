@@ -59,7 +59,9 @@ export class ProjectReportController {
     description: '成功创建项目报告。',
   })
   @ApiBody({ type: CreateProjectReportDto })
-  create(@Body() createProjectReportDto: CreateProjectReportDto): Promise<ProjectReport> {
+  create(
+    @Body() createProjectReportDto: CreateProjectReportDto,
+  ): Promise<ProjectReport> {
     return this.projectReportService.create(createProjectReportDto);
   }
 
@@ -94,4 +96,4 @@ export class ProjectReportController {
   remove(@Param('id') id: string): Promise<void> {
     return this.projectReportService.remove(+id);
   }
-} 
+}

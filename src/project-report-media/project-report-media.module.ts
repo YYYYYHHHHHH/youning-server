@@ -18,4 +18,4 @@ import { MediaModule } from '../media/media.module';
   controllers: [ProjectReportMediaController],
   exports: [TypeOrmModule],
 })
-export class ProjectReportMediaModule {} 
+export class ProjectReportMediaModule {}

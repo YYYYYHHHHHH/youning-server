@@ -18,4 +18,4 @@ import { PersonModule } from '../person/person.module';
   controllers: [ProjectReportController],
   exports: [TypeOrmModule],
 })
-export class ProjectReportModule {} 
+export class ProjectReportModule {}
