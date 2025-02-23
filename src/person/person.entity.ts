@@ -40,4 +40,10 @@ export class Person {
 
   @Column({ length: 500, nullable: true })
   remark?: string;
+
+  @Column({ length: 18, nullable: true })
+  idCard?: string;
+
+  @Column({ length: 19, nullable: true })
+  bankCard?: string;
 }

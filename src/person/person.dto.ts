@@ -67,4 +67,24 @@ export class CreatePersonDto {
   @IsString({ message: '备注必须是字符串' })
   @Length(0, 500, { message: '备注长度不能超过500' })
   remark?: string;
+
+  @ApiProperty({
+    description: '身份证号',
+    example: '440101199001011234',
+    required: false,
+  })
+  @IsOptional()
+  @IsString({ message: '身份证号必须是字符串' })
+  @Length(18, 18, { message: '身份证号必须是18位' })
+  idCard?: string;
+
+  @ApiProperty({
+    description: '银行卡号',
+    example: '6222021234567890123',
+    required: false,
+  })
+  @IsOptional()
+  @IsString({ message: '银行卡号必须是字符串' })
+  @Length(16, 19, { message: '银行卡号长度必须在16-19位之间' })
+  bankCard?: string;
 }
