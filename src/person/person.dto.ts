@@ -57,14 +57,4 @@ export class CreatePersonDto {
   })
   @IsOptional()
   icon?: number;
-
-  @ApiProperty({
-    description: '备注',
-    required: false,
-    example: '这是一个备注',
-  })
-  @IsOptional()
-  @IsString({ message: '备注必须是字符串' })
-  @Length(0, 500, { message: '备注长度不能超过500' })
-  remark?: string;
 }
