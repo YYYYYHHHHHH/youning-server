@@ -7,11 +7,42 @@ import {
   Delete,
   Put,
   NotFoundException,
+  Query,
+  BadRequestException,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiProperty,
+} from '@nestjs/swagger';
 import { ProjectReportMediaService } from './project-report-media.service';
 import { ProjectReportMedia } from './project-report-media.entity';
 import { CreateProjectReportMediaDto } from './project-report-media.dto';
+import { Type } from 'class-transformer';
+import { IsDate, IsNumber, IsString } from 'class-validator';
+
+// 修改查询 DTO，只需要项目ID和创建人ID
+export class FindMediaQueryDto {
+  @ApiProperty({
+    description: '项目ID',
+    required: true,
+    example: 1,
+  })
+  @IsNumber()
+  @Type(() => Number)
+  projectId!: number;
+
+  @ApiProperty({
+    description: '创建人ID',
+    required: true,
+    example: 1,
+  })
+  @IsNumber()
+  @Type(() => Number)
+  createById!: number;
+}
 
 @ApiTags('project-report-medias')
 @Controller('project-report-medias')
@@ -19,6 +50,37 @@ export class ProjectReportMediaController {
   constructor(
     private readonly projectReportMediaService: ProjectReportMediaService,
   ) {}
+
+  @Get('today')
+  @ApiOperation({
+    summary: '查找今日项目报告媒体',
+    description: '根据项目ID和创建人ID查找今日的项目报告媒体',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '成功获取项目报告媒体列表',
+    type: [ProjectReportMedia],
+  })
+  async findTodayByProjectAndCreator(
+    @Query() query: FindMediaQueryDto,
+  ): Promise<ProjectReportMedia[]> {
+    const today = new Date();
+    console.log(today);
+    const medias =
+      await this.projectReportMediaService.findByDateAndProjectAndCreator(
+        today,
+        query.projectId,
+        query.createById,
+      );
+
+    if (!medias.length) {
+      throw new NotFoundException(
+        `No project report medias found for today, project ${query.projectId} and creator ${query.createById}`,
+      );
+    }
+
+    return medias;
+  }
 
   @Get()
   @ApiOperation({

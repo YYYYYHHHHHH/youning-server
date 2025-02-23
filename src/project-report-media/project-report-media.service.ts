@@ -161,4 +161,33 @@ export class ProjectReportMediaService {
     }
     await this.projectReportMediaRepository.delete(id);
   }
+
+  async findByDateAndProjectAndCreator(
+    date: Date,
+    projectId: number,
+    createById: number,
+  ): Promise<ProjectReportMedia[]> {
+    // 获取指定日期的开始和结束时间
+    const dayStart = startOfDay(date);
+    const dayEnd = endOfDay(date);
+
+    console.log('date', date);
+    console.log('projectId', projectId);
+    console.log('createById', createById);
+    return this.projectReportMediaRepository.find({
+      where: {
+        projectReport: {
+          project: { id: projectId },
+          createBy: { id: createById },
+          createTime: Between(dayStart, dayEnd),
+        },
+      },
+      relations: [
+        'projectReport',
+        'media',
+        'projectReport.project',
+        'projectReport.createBy',
+      ],
+    });
+  }
 }

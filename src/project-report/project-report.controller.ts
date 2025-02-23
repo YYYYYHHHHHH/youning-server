@@ -7,11 +7,50 @@ import {
   Delete,
   Put,
   NotFoundException,
+  Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiProperty,
+} from '@nestjs/swagger';
 import { ProjectReportService } from './project-report.service';
 import { ProjectReport } from './project-report.entity';
 import { CreateProjectReportDto } from './project-report.dto';
+import { Type } from 'class-transformer';
+import { IsDate, IsNumber } from 'class-validator';
+
+// 添加查询 DTO
+export class FindReportQueryDto {
+  @ApiProperty({
+    description: '查询日期',
+    required: true,
+    example: new Date(),
+  })
+  @IsDate()
+  @Type(() => Date)
+  date!: Date;
+
+  @ApiProperty({
+    description: '项目ID',
+    required: true,
+    example: 1,
+  })
+  @IsNumber()
+  @Type(() => Number)
+  projectId!: number;
+
+  @ApiProperty({
+    description: '创建人ID',
+    required: true,
+    example: 1,
+  })
+  @IsNumber()
+  @Type(() => Number)
+  createById!: number;
+}
 
 @ApiTags('project-reports')
 @Controller('project-reports')
@@ -95,5 +134,35 @@ export class ProjectReportController {
   @ApiResponse({ status: 204, description: '成功删除项目报告' })
   remove(@Param('id') id: string): Promise<void> {
     return this.projectReportService.remove(+id);
+  }
+
+  @Get('search')
+  @ApiOperation({
+    summary: '查找项目报告',
+    description: '根据日期、项目ID和创建人ID查找项目报告',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '成功获取项目报告',
+    type: ProjectReport,
+  })
+  @ApiResponse({ status: 404, description: '项目报告未找到' })
+  async findByDateAndProjectAndCreator(
+    @Query() query: FindReportQueryDto,
+  ): Promise<ProjectReport> {
+    const projectReport =
+      await this.projectReportService.findByDateAndProjectAndCreator(
+        query.date,
+        query.projectId,
+        query.createById,
+      );
+
+    if (!projectReport) {
+      throw new NotFoundException(
+        `No project report found for date ${query.date}, project ${query.projectId} and creator ${query.createById}`,
+      );
+    }
+
+    return projectReport;
   }
 }

@@ -6,6 +6,8 @@ import { Project } from '../project/project.entity';
 import { Person } from '../person/person.entity';
 import { CreateProjectReportDto } from './project-report.dto';
 import { BusinessException } from '../common/exceptions/business.exception';
+import { startOfDay, endOfDay } from 'date-fns';
+import { Between } from 'typeorm';
 
 @Injectable()
 export class ProjectReportService {
@@ -139,5 +141,24 @@ export class ProjectReportService {
       );
     }
     await this.projectReportRepository.delete(id);
+  }
+
+  async findByDateAndProjectAndCreator(
+    date: Date,
+    projectId: number,
+    createById: number,
+  ): Promise<ProjectReport | null> {
+    // 获取指定日期的开始和结束时间
+    const dayStart = startOfDay(date);
+    const dayEnd = endOfDay(date);
+
+    return this.projectReportRepository.findOne({
+      where: {
+        project: { id: projectId },
+        createBy: { id: createById },
+        createTime: Between(dayStart, dayEnd),
+      },
+      relations: ['createBy', 'project'],
+    });
   }
 }
