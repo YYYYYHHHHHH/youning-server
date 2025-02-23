@@ -9,6 +9,8 @@ import {
 import { Person } from '../person/person.entity';
 import { Project } from '../project/project.entity';
 import { ProjectReportMedia } from '../project-report-media/project-report-media.entity';
+import { ProjectReportPerson } from '../project-report-person/project-report-person.entity';
+import { StoreHistoryRecord } from '../store-history-record/store-history-record.entity';
 
 @Entity()
 export class ProjectReport {
@@ -31,4 +33,9 @@ export class ProjectReport {
 
   @OneToMany(() => ProjectReportMedia, (media) => media.projectReport)
   projectReportMedias?: ProjectReportMedia[];
+
+  @OneToMany(() => ProjectReportPerson, (person) => person.projectReport)
+  projectReportPersons?: ProjectReportPerson[];
+
+  storeHistoryRecords?: StoreHistoryRecord[];
 }

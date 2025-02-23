@@ -13,6 +13,7 @@ import { Store } from '../store/store.entity';
 import { StoreMaterial } from '../store-material/store-material.entity';
 import { StoreHistoryRecord } from '../store-history-record/store-history-record.entity';
 import { ChangeType } from '../store-history-record/store-history-record.enum';
+import { Material } from '../material/material.entity';
 
 @Injectable()
 export class ProjectReportService {
@@ -34,24 +35,92 @@ export class ProjectReportService {
     private readonly dataSource: DataSource,
   ) {}
 
-  findAll(): Promise<ProjectReport[]> {
-    return this.projectReportRepository.find({
-      relations: ['createBy', 'project'],
+  async findAll(): Promise<ProjectReport[]> {
+    // 1. 获取所有项目报告
+    const reports = await this.projectReportRepository.find({
+      relations: [
+        'project',
+        'createBy',
+        'projectReportMedias',
+        'projectReportMedias.media',
+        'projectReportPersons',
+        'projectReportPersons.person',
+      ],
+      order: {
+        createTime: 'DESC',
+      },
     });
+
+    // 2. 为每个报告查找对应的历史记录
+    const reportsWithHistory = await Promise.all(
+      reports.map(async (report) => {
+        const dayStart = startOfDay(report.createTime);
+        const dayEnd = endOfDay(report.createTime);
+
+        const historyRecords = await this.storeHistoryRecordRepository.find({
+          where: {
+            time: Between(dayStart, dayEnd),
+            store: { project: { id: report.project.id } },
+            person: { id: report.createBy.id },
+            changeType: ChangeType.CONSUME_OUT,
+          },
+          relations: ['store', 'store.project', 'person', 'material'],
+          order: {
+            time: 'DESC',
+          },
+        });
+
+        return {
+          ...report,
+          storeHistoryRecords: historyRecords,
+        };
+      }),
+    );
+
+    return reportsWithHistory;
   }
 
   async findOne(id: number): Promise<ProjectReport | null> {
     const projectReport = await this.projectReportRepository.findOne({
       where: { id },
-      relations: ['createBy', 'project'],
+      relations: [
+        'project',
+        'createBy',
+        'projectReportMedias',
+        'projectReportMedias.media',
+        'projectReportPersons',
+        'projectReportPersons.person',
+      ],
     });
+
     if (!projectReport) {
       throw new BusinessException(
         `ProjectReport with ID ${id} not found`,
         HttpStatus.NOT_FOUND,
       );
     }
-    return projectReport;
+
+    // 查找相关的历史记录
+    const dayStart = startOfDay(projectReport.createTime);
+    const dayEnd = endOfDay(projectReport.createTime);
+
+    const historyRecords = await this.storeHistoryRecordRepository.find({
+      where: {
+        time: Between(dayStart, dayEnd),
+        store: { project: { id: projectReport.project.id } },
+        person: { id: projectReport.createBy.id },
+        changeType: ChangeType.CONSUME_OUT,
+      },
+      relations: ['store', 'store.project', 'person', 'material'],
+      order: {
+        time: 'DESC',
+      },
+    });
+
+    return {
+      ...projectReport,
+      storeHistoryRecords: historyRecords,
+    };
   }
 
   async create(createDto: CreateProjectReportDto): Promise<ProjectReport> {
@@ -113,28 +182,56 @@ export class ProjectReportService {
       }
 
       // 3. 创建材料消耗记录
-      const store = await this.storeRepository.findOne({
+      let store = await this.storeRepository.findOne({
         where: { project: { id: project.id } },
       });
+
+      // 如果项目没有关联仓库，就创建一个
       if (!store) {
-        throw new BusinessException(
-          `No store found for project ${project.id}`,
-          HttpStatus.NOT_FOUND,
-        );
+        store = this.storeRepository.create({
+          name: `${project.name}仓库`,
+          project: project,
+        });
+        await queryRunner.manager.save(store);
       }
 
       for (const materialItem of createDto.materials) {
         // 检查并更新库存
-        const storeMaterial = await this.storeMaterialRepository.findOne({
+        let storeMaterial = await this.storeMaterialRepository.findOne({
           where: {
             store: { id: store.id },
             material: { id: materialItem.materialId },
           },
+          relations: ['material'],
         });
 
-        if (!storeMaterial || storeMaterial.currentStock < materialItem.count) {
+        // 如果没有库存记录，创建一个新的，初始库存设为 100
+        if (!storeMaterial) {
+          const material = await queryRunner.manager.findOne(Material, {
+            where: { id: materialItem.materialId },
+          });
+
+          if (!material) {
+            throw new BusinessException(
+              `Material with ID ${materialItem.materialId} not found`,
+              HttpStatus.NOT_FOUND,
+            );
+          }
+
+          storeMaterial = this.storeMaterialRepository.create({
+            store: store,
+            material: material,
+            currentStock: 100, // 设置初始库存为 100
+            warningThreshold: 20, // 设置预警阈值为 20
+          });
+
+          await queryRunner.manager.save(storeMaterial);
+        }
+
+        // 检查库存是否充足
+        if (storeMaterial.currentStock < materialItem.count) {
           throw new BusinessException(
-            `Insufficient stock for material ${materialItem.materialId}`,
+            `Insufficient stock for material ${materialItem.materialId}. Current stock: ${storeMaterial.currentStock}, Required: ${materialItem.count}`,
             HttpStatus.BAD_REQUEST,
           );
         }
@@ -156,7 +253,27 @@ export class ProjectReportService {
       }
 
       await queryRunner.commitTransaction();
-      return savedProjectReport;
+
+      // 返回完整的关联数据
+      const result = await this.projectReportRepository.findOne({
+        where: { id: savedProjectReport.id },
+        relations: [
+          'project',
+          'createBy',
+          'projectReportMedias',
+          'projectReportMedias.media',
+          'projectReportPersons',
+          'projectReportPersons.person',
+        ],
+      });
+
+      if (!result) {
+        throw new BusinessException(
+          `ProjectReport with ID ${savedProjectReport.id} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      return result;
     } catch (err) {
       await queryRunner.rollbackTransaction();
       throw err;
@@ -171,7 +288,14 @@ export class ProjectReportService {
   ): Promise<ProjectReport> {
     const projectReport = await this.projectReportRepository.findOne({
       where: { id },
-      relations: ['createBy', 'project'],
+      relations: [
+        'createBy',
+        'project',
+        'projectReportMedias',
+        'projectReportMedias.media',
+        'projectReportPersons',
+        'projectReportPersons.person',
+      ],
     });
 
     if (!projectReport) {
@@ -210,7 +334,14 @@ export class ProjectReportService {
     await this.projectReportRepository.save(projectReport);
     const result = await this.projectReportRepository.findOne({
       where: { id },
-      relations: ['createBy', 'project'],
+      relations: [
+        'createBy',
+        'project',
+        'projectReportMedias',
+        'projectReportMedias.media',
+        'projectReportPersons',
+        'projectReportPersons.person',
+      ],
     });
     if (!result) {
       throw new BusinessException(
@@ -237,11 +368,11 @@ export class ProjectReportService {
     projectId: number,
     createById: number,
   ): Promise<ProjectReport | null> {
-    // 获取指定日期的开始和结束时间
     const dayStart = startOfDay(date);
     const dayEnd = endOfDay(date);
 
-    return this.projectReportRepository.findOne({
+    // 1. 查找项目报告
+    const projectReport = await this.projectReportRepository.findOne({
       where: {
         project: { id: projectId },
         createBy: { id: createById },
@@ -252,7 +383,82 @@ export class ProjectReportService {
         'createBy',
         'projectReportMedias',
         'projectReportMedias.media',
+        'projectReportPersons',
+        'projectReportPersons.person',
       ],
     });
+
+    if (!projectReport) {
+      return null;
+    }
+
+    // 2. 查找相关的历史记录
+    const historyRecords = await this.storeHistoryRecordRepository.find({
+      where: {
+        time: Between(dayStart, dayEnd),
+        store: { project: { id: projectId } },
+        person: { id: createById },
+        changeType: ChangeType.CONSUME_OUT,
+      },
+      relations: ['store', 'store.project', 'person', 'material'],
+      order: {
+        time: 'DESC',
+      },
+    });
+
+    // 3. 将历史记录添加到返回结果中
+    return {
+      ...projectReport,
+      storeHistoryRecords: historyRecords,
+    };
+  }
+
+  async findByProject(projectId: number): Promise<ProjectReport[]> {
+    // 1. 获取指定项目的所有日报
+    const reports = await this.projectReportRepository.find({
+      where: {
+        project: { id: projectId },
+      },
+      relations: [
+        'project',
+        'createBy',
+        'projectReportMedias',
+        'projectReportMedias.media',
+        'projectReportMedias.media.createBy',
+        'projectReportPersons',
+        'projectReportPersons.person',
+      ],
+      order: {
+        createTime: 'DESC',
+      },
+    });
+
+    // 2. 为每个报告查找对应的历史记录
+    const reportsWithHistory = await Promise.all(
+      reports.map(async (report) => {
+        const dayStart = startOfDay(report.createTime);
+        const dayEnd = endOfDay(report.createTime);
+
+        const historyRecords = await this.storeHistoryRecordRepository.find({
+          where: {
+            time: Between(dayStart, dayEnd),
+            store: { project: { id: projectId } },
+            person: { id: report.createBy.id },
+            changeType: ChangeType.CONSUME_OUT,
+          },
+          relations: ['store', 'store.project', 'person', 'material'],
+          order: {
+            time: 'DESC',
+          },
+        });
+
+        return {
+          ...report,
+          storeHistoryRecords: historyRecords,
+        };
+      }),
+    );
+
+    return reportsWithHistory;
   }
 }

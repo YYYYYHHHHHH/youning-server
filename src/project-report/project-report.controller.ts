@@ -5,6 +5,7 @@ import {
   Body,
   NotFoundException,
   Query,
+  Param,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -18,6 +19,7 @@ import { ProjectReport } from './project-report.entity';
 import { CreateProjectReportDto } from './project-report.dto';
 import { Type } from 'class-transformer';
 import { IsNumber } from 'class-validator';
+import { ProjectService } from '../project/project.service';
 
 // 修改查询 DTO，移除日期参数
 export class FindReportQueryDto {
@@ -43,7 +45,10 @@ export class FindReportQueryDto {
 @ApiTags('project-reports')
 @Controller('project-reports')
 export class ProjectReportController {
-  constructor(private readonly projectReportService: ProjectReportService) {}
+  constructor(
+    private readonly projectReportService: ProjectReportService,
+    private readonly projectService: ProjectService,
+  ) {}
 
   @Get()
   @ApiOperation({
@@ -137,5 +142,18 @@ export class ProjectReportController {
     }
 
     return projectReport;
+  }
+
+  @Get('project/:projectId')
+  @ApiOperation({ summary: '获取指定项目的所有日报' })
+  @ApiResponse({ status: 200, description: '成功获取项目日报列表' })
+  @ApiResponse({ status: 404, description: '项目未找到' })
+  async findByProject(@Param('projectId') projectId: string): Promise<ProjectReport[]> {
+    // 先检查项目是否存在
+    const project = await this.projectService.findOne(+projectId);
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${projectId} not found`);
+    }
+    return this.projectReportService.findByProject(+projectId);
   }
 }
