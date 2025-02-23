@@ -22,17 +22,8 @@ import { CreateProjectReportDto } from './project-report.dto';
 import { Type } from 'class-transformer';
 import { IsDate, IsNumber } from 'class-validator';
 
-// 添加查询 DTO
+// 修改查询 DTO，移除日期参数
 export class FindReportQueryDto {
-  @ApiProperty({
-    description: '查询日期',
-    required: true,
-    example: new Date(),
-  })
-  @IsDate()
-  @Type(() => Date)
-  date!: Date;
-
   @ApiProperty({
     description: '项目ID',
     required: true,
@@ -70,24 +61,6 @@ export class ProjectReportController {
     return this.projectReportService.findAll();
   }
 
-  @Get(':id')
-  @ApiOperation({
-    summary: '根据ID获取项目报告',
-    description: '根据ID获取单个项目报告的详细信息，包含关联的项目和人员信息。',
-  })
-  @ApiResponse({
-    status: 200,
-    description: '成功获取项目报告信息，包含完整的关联信息。',
-  })
-  @ApiResponse({ status: 404, description: '项目报告未找到' })
-  async findOne(@Param('id') id: string): Promise<ProjectReport> {
-    const projectReport = await this.projectReportService.findOne(+id);
-    if (!projectReport) {
-      throw new NotFoundException(`ProjectReport with ID ${id} not found`);
-    }
-    return projectReport;
-  }
-
   @Post()
   @ApiOperation({
     summary: '创建项目报告',
@@ -104,42 +77,42 @@ export class ProjectReportController {
     return this.projectReportService.create(createProjectReportDto);
   }
 
-  @Put(':id')
-  @ApiOperation({
-    summary: '更新项目报告信息',
-    description: '更新项目报告信息，包括关联的项目和人员。',
-  })
-  @ApiResponse({
-    status: 200,
-    description: '成功更新项目报告信息。',
-  })
-  @ApiResponse({ status: 404, description: '项目报告未找到' })
-  @ApiBody({ type: CreateProjectReportDto })
-  async update(
-    @Param('id') id: string,
-    @Body() updateProjectReportDto: CreateProjectReportDto,
-  ): Promise<ProjectReport> {
-    const updatedProjectReport = await this.projectReportService.update(
-      +id,
-      updateProjectReportDto,
-    );
-    if (!updatedProjectReport) {
-      throw new NotFoundException(`ProjectReport with ID ${id} not found`);
-    }
-    return updatedProjectReport;
-  }
+  // @Put(':id')
+  // @ApiOperation({
+  //   summary: '更新项目报告信息',
+  //   description: '更新项目报告信息，包括关联的项目和人员。',
+  // })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: '成功更新项目报告信息。',
+  // })
+  // @ApiResponse({ status: 404, description: '项目报告未找到' })
+  // @ApiBody({ type: CreateProjectReportDto })
+  // async update(
+  //   @Param('id') id: string,
+  //   @Body() updateProjectReportDto: CreateProjectReportDto,
+  // ): Promise<ProjectReport> {
+  //   const updatedProjectReport = await this.projectReportService.update(
+  //     +id,
+  //     updateProjectReportDto,
+  //   );
+  //   if (!updatedProjectReport) {
+  //     throw new NotFoundException(`ProjectReport with ID ${id} not found`);
+  //   }
+  //   return updatedProjectReport;
+  // }
 
-  @Delete(':id')
-  @ApiOperation({ summary: '删除项目报告' })
-  @ApiResponse({ status: 204, description: '成功删除项目报告' })
-  remove(@Param('id') id: string): Promise<void> {
-    return this.projectReportService.remove(+id);
-  }
+  // @Delete(':id')
+  // @ApiOperation({ summary: '删除项目报告' })
+  // @ApiResponse({ status: 204, description: '成功删除项目报告' })
+  // remove(@Param('id') id: string): Promise<void> {
+  //   return this.projectReportService.remove(+id);
+  // }
 
-  @Get('search')
+  @Get('today')
   @ApiOperation({
-    summary: '查找项目报告',
-    description: '根据日期、项目ID和创建人ID查找项目报告',
+    summary: '查找今日项目报告',
+    description: '根据项目ID和创建人ID查找今日的项目报告',
   })
   @ApiResponse({
     status: 200,
@@ -147,19 +120,22 @@ export class ProjectReportController {
     type: ProjectReport,
   })
   @ApiResponse({ status: 404, description: '项目报告未找到' })
-  async findByDateAndProjectAndCreator(
+  async findTodayReport(
     @Query() query: FindReportQueryDto,
   ): Promise<ProjectReport> {
+    const today = new Date();
+    console.log('today', today);
+
     const projectReport =
       await this.projectReportService.findByDateAndProjectAndCreator(
-        query.date,
+        today,
         query.projectId,
         query.createById,
       );
 
     if (!projectReport) {
       throw new NotFoundException(
-        `No project report found for date ${query.date}, project ${query.projectId} and creator ${query.createById}`,
+        `No project report found for today, project ${query.projectId} and creator ${query.createById}`,
       );
     }
 

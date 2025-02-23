@@ -2,8 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProjectReportMediaController } from './project-report-media.controller';
 import { ProjectReportMediaService } from './project-report-media.service';
 import { CreateProjectReportMediaDto } from './project-report-media.dto';
-import { NotFoundException, HttpStatus } from '@nestjs/common';
-import { BusinessException } from '../common/exceptions/business.exception';
+import { NotFoundException } from '@nestjs/common';
 
 describe('ProjectReportMediaController', () => {
   let controller: ProjectReportMediaController;
@@ -35,11 +34,12 @@ describe('ProjectReportMediaController', () => {
           provide: ProjectReportMediaService,
           useValue: {
             findAll: jest.fn().mockResolvedValue([mockProjectReportMedia]),
-            findOne: jest.fn().mockResolvedValue(mockProjectReportMedia),
             create: jest.fn().mockResolvedValue(mockProjectReportMedia),
-            update: jest.fn().mockResolvedValue(mockProjectReportMedia),
             remove: jest.fn().mockResolvedValue(undefined),
             findByDateAndProjectAndCreator: jest
+              .fn()
+              .mockResolvedValue([mockProjectReportMedia]),
+            findByProjectAndCreator: jest
               .fn()
               .mockResolvedValue([mockProjectReportMedia]),
           },
@@ -67,18 +67,6 @@ describe('ProjectReportMediaController', () => {
     });
   });
 
-  describe('findOne', () => {
-    it('should return a project report media', async () => {
-      expect(await controller.findOne('1')).toEqual(mockProjectReportMedia);
-      expect(service.findOne).toHaveBeenCalledWith(1);
-    });
-
-    it('should throw NotFoundException when project report media not found', async () => {
-      jest.spyOn(service, 'findOne').mockResolvedValue(null);
-      await expect(controller.findOne('1')).rejects.toThrow(NotFoundException);
-    });
-  });
-
   describe('create', () => {
     it('should create a project report media', async () => {
       expect(await controller.create(mockCreateProjectReportMediaDto)).toEqual(
@@ -87,31 +75,6 @@ describe('ProjectReportMediaController', () => {
       expect(service.create).toHaveBeenCalledWith(
         mockCreateProjectReportMediaDto,
       );
-    });
-  });
-
-  describe('update', () => {
-    it('should update a project report media', async () => {
-      expect(
-        await controller.update('1', mockCreateProjectReportMediaDto),
-      ).toEqual(mockProjectReportMedia);
-      expect(service.update).toHaveBeenCalledWith(
-        1,
-        mockCreateProjectReportMediaDto,
-      );
-    });
-
-    it('should throw NotFoundException when project report media not found', async () => {
-      jest.spyOn(service, 'update').mockRejectedValue(
-        new BusinessException(
-          `ProjectReportMedia with ID 1 not found`,
-          HttpStatus.NOT_FOUND,
-        ),
-      );
-      
-      await expect(
-        controller.update('1', mockCreateProjectReportMediaDto),
-      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -134,6 +97,26 @@ describe('ProjectReportMediaController', () => {
         .mockResolvedValue([]);
       await expect(
         controller.findTodayByProjectAndCreator(mockQuery),
+      ).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('findByProjectAndCreator', () => {
+    const mockQuery = { projectId: 1, createById: 1 };
+
+    it('should return all project report medias', async () => {
+      const result = await controller.findByProjectAndCreator(mockQuery);
+      expect(result).toEqual([mockProjectReportMedia]);
+      expect(service.findByProjectAndCreator).toHaveBeenCalledWith(
+        mockQuery.projectId,
+        mockQuery.createById,
+      );
+    });
+
+    it('should throw NotFoundException when no medias found', async () => {
+      jest.spyOn(service, 'findByProjectAndCreator').mockResolvedValue([]);
+      await expect(
+        controller.findByProjectAndCreator(mockQuery),
       ).rejects.toThrow(NotFoundException);
     });
   });

@@ -44,6 +44,26 @@ export class FindMediaQueryDto {
   createById!: number;
 }
 
+export class FindMediasByProjectQueryDto {
+  @ApiProperty({
+    description: '项目ID',
+    required: true,
+    example: 1,
+  })
+  @IsNumber()
+  @Type(() => Number)
+  projectId!: number;
+
+  @ApiProperty({
+    description: '创建人ID',
+    required: true,
+    example: 1,
+  })
+  @IsNumber()
+  @Type(() => Number)
+  createById!: number;
+}
+
 @ApiTags('project-report-medias')
 @Controller('project-report-medias')
 export class ProjectReportMediaController {
@@ -95,25 +115,25 @@ export class ProjectReportMediaController {
     return this.projectReportMediaService.findAll();
   }
 
-  @Get(':id')
-  @ApiOperation({
-    summary: '根据ID获取项目报告媒体',
-    description:
-      '根据ID获取单个项目报告媒体的详细信息，包含关联的项目报告和媒体信息。',
-  })
-  @ApiResponse({
-    status: 200,
-    description: '成功获取项目报告媒体信息，包含完整的关联信息。',
-  })
-  @ApiResponse({ status: 404, description: '项目报告媒体未找到' })
-  async findOne(@Param('id') id: string): Promise<ProjectReportMedia> {
-    const projectReportMedia =
-      await this.projectReportMediaService.findOne(+id);
-    if (!projectReportMedia) {
-      throw new NotFoundException(`ProjectReportMedia with ID ${id} not found`);
-    }
-    return projectReportMedia;
-  }
+  // @Get(':id')
+  // @ApiOperation({
+  //   summary: '根据ID获取项目报告媒体',
+  //   description:
+  //     '根据ID获取单个项目报告媒体的详细信息，包含关联的项目报告和媒体信息。',
+  // })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: '成功获取项目报告媒体信息，包含完整的关联信息。',
+  // })
+  // @ApiResponse({ status: 404, description: '项目报告媒体未找到' })
+  // async findOne(@Param('id') id: string): Promise<ProjectReportMedia> {
+  //   const projectReportMedia =
+  //     await this.projectReportMediaService.findOne(+id);
+  //   if (!projectReportMedia) {
+  //     throw new NotFoundException(`ProjectReportMedia with ID ${id} not found`);
+  //   }
+  //   return projectReportMedia;
+  // }
 
   @Post()
   @ApiOperation({
@@ -131,36 +151,63 @@ export class ProjectReportMediaController {
     return this.projectReportMediaService.create(createProjectReportMediaDto);
   }
 
-  @Put(':id')
-  @ApiOperation({
-    summary: '更新项目报告媒体信息',
-    description: '更新项目报告媒体的关联关系。',
-  })
-  @ApiResponse({
-    status: 200,
-    description: '成功更新项目报告媒体关联。',
-  })
-  @ApiResponse({ status: 404, description: '项目报告媒体未找到' })
-  @ApiBody({ type: CreateProjectReportMediaDto })
-  async update(
-    @Param('id') id: string,
-    @Body() updateProjectReportMediaDto: CreateProjectReportMediaDto,
-  ): Promise<ProjectReportMedia> {
-    const updatedProjectReportMedia =
-      await this.projectReportMediaService.update(
-        +id,
-        updateProjectReportMediaDto,
-      );
-    if (!updatedProjectReportMedia) {
-      throw new NotFoundException(`ProjectReportMedia with ID ${id} not found`);
-    }
-    return updatedProjectReportMedia;
-  }
+  // @Put(':id')
+  // @ApiOperation({
+  //   summary: '更新项目报告媒体信息',
+  //   description: '更新项目报告媒体的关联关系。',
+  // })
+  // @ApiResponse({
+  //   status: 200,
+  //   description: '成功更新项目报告媒体关联。',
+  // })
+  // @ApiResponse({ status: 404, description: '项目报告媒体未找到' })
+  // @ApiBody({ type: CreateProjectReportMediaDto })
+  // async update(
+  //   @Param('id') id: string,
+  //   @Body() updateProjectReportMediaDto: CreateProjectReportMediaDto,
+  // ): Promise<ProjectReportMedia> {
+  //   const updatedProjectReportMedia =
+  //     await this.projectReportMediaService.update(
+  //       +id,
+  //       updateProjectReportMediaDto,
+  //     );
+  //   if (!updatedProjectReportMedia) {
+  //     throw new NotFoundException(`ProjectReportMedia with ID ${id} not found`);
+  //   }
+  //   return updatedProjectReportMedia;
+  // }
 
   @Delete(':id')
   @ApiOperation({ summary: '删除项目报告媒体' })
   @ApiResponse({ status: 204, description: '成功删除项目报告媒体' })
   remove(@Param('id') id: string): Promise<void> {
     return this.projectReportMediaService.remove(+id);
+  }
+
+  @Get('by-project')
+  @ApiOperation({
+    summary: '查找项目所有报告媒体',
+    description: '根据项目ID和创建人ID查找所有报告媒体',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '成功获取项目报告媒体列表',
+    type: [ProjectReportMedia],
+  })
+  async findByProjectAndCreator(
+    @Query() query: FindMediasByProjectQueryDto,
+  ): Promise<ProjectReportMedia[]> {
+    const medias = await this.projectReportMediaService.findByProjectAndCreator(
+      query.projectId,
+      query.createById,
+    );
+
+    if (!medias.length) {
+      throw new NotFoundException(
+        `No project report medias found for project ${query.projectId} and creator ${query.createById}`,
+      );
+    }
+
+    return medias;
   }
 }

@@ -158,7 +158,12 @@ export class ProjectReportService {
         createBy: { id: createById },
         createTime: Between(dayStart, dayEnd),
       },
-      relations: ['createBy', 'project'],
+      relations: [
+        'project',
+        'createBy',
+        'projectReportMedias',
+        'projectReportMedias.media',
+      ],
     });
   }
 }

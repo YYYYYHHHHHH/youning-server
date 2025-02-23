@@ -7,7 +7,7 @@ export class ProjectReportMedia {
   @PrimaryGeneratedColumn()
   id!: number;
 
-  @ManyToOne(() => ProjectReport)
+  @ManyToOne(() => ProjectReport, (report) => report.projectReportMedias)
   @JoinColumn()
   projectReport!: ProjectReport;
 

@@ -3,10 +3,12 @@ import {
   Column,
   PrimaryGeneratedColumn,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { Person } from '../person/person.entity';
 import { Project } from '../project/project.entity';
+import { ProjectReportMedia } from '../project-report-media/project-report-media.entity';
 
 @Entity()
 export class ProjectReport {
@@ -26,4 +28,7 @@ export class ProjectReport {
   @ManyToOne(() => Project)
   @JoinColumn()
   project!: Project;
+
+  @OneToMany(() => ProjectReportMedia, (media) => media.projectReport)
+  projectReportMedias?: ProjectReportMedia[];
 }

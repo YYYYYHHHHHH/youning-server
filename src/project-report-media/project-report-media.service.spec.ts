@@ -11,7 +11,6 @@ import { BusinessException } from '../common/exceptions/business.exception';
 describe('ProjectReportMediaService', () => {
   let service: ProjectReportMediaService;
   let projectReportMediaRepository: Repository<ProjectReportMedia>;
-  let projectReportRepository: Repository<ProjectReport>;
   let mediaRepository: Repository<Media>;
 
   const mockProjectReportMedia = {
@@ -39,7 +38,6 @@ describe('ProjectReportMediaService', () => {
           provide: getRepositoryToken(ProjectReportMedia),
           useValue: {
             find: jest.fn().mockResolvedValue([mockProjectReportMedia]),
-            findOne: jest.fn().mockResolvedValue(mockProjectReportMedia),
             findOneBy: jest.fn().mockResolvedValue(mockProjectReportMedia),
             create: jest.fn().mockReturnValue(mockProjectReportMedia),
             save: jest.fn().mockResolvedValue(mockProjectReportMedia),
@@ -50,9 +48,6 @@ describe('ProjectReportMediaService', () => {
           provide: getRepositoryToken(ProjectReport),
           useValue: {
             findOne: jest
-              .fn()
-              .mockResolvedValue(mockProjectReportMedia.projectReport),
-            findOneBy: jest
               .fn()
               .mockResolvedValue(mockProjectReportMedia.projectReport),
             save: jest
@@ -75,9 +70,6 @@ describe('ProjectReportMediaService', () => {
     projectReportMediaRepository = module.get<Repository<ProjectReportMedia>>(
       getRepositoryToken(ProjectReportMedia),
     );
-    projectReportRepository = module.get<Repository<ProjectReport>>(
-      getRepositoryToken(ProjectReport),
-    );
     mediaRepository = module.get<Repository<Media>>(getRepositoryToken(Media));
 
     // 重置所有 mock
@@ -92,6 +84,14 @@ describe('ProjectReportMediaService', () => {
     it('should find project report medias by date and project and creator', async () => {
       const date = new Date();
       const result = await service.findByDateAndProjectAndCreator(date, 1, 1);
+      expect(result).toEqual([mockProjectReportMedia]);
+      expect(projectReportMediaRepository.find).toHaveBeenCalled();
+    });
+  });
+
+  describe('findByProjectAndCreator', () => {
+    it('should find all project report medias by project and creator', async () => {
+      const result = await service.findByProjectAndCreator(1, 1);
       expect(result).toEqual([mockProjectReportMedia]);
       expect(projectReportMediaRepository.find).toHaveBeenCalled();
     });
@@ -112,5 +112,15 @@ describe('ProjectReportMediaService', () => {
     });
   });
 
-  // ... 其他测试用例
+  describe('remove', () => {
+    it('should remove a project report media', async () => {
+      await service.remove(1);
+      expect(projectReportMediaRepository.delete).toHaveBeenCalledWith(1);
+    });
+
+    it('should throw error if project report media not found', async () => {
+      jest.spyOn(projectReportMediaRepository, 'findOneBy').mockResolvedValue(null);
+      await expect(service.remove(1)).rejects.toThrow(BusinessException);
+    });
+  });
 });
