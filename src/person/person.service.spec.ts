@@ -48,6 +48,7 @@ describe('PersonService', () => {
           useValue: {
             find: jest.fn().mockResolvedValue([mockPerson]),
             findOne: jest.fn().mockResolvedValue(mockPerson),
+            findOneBy: jest.fn().mockResolvedValue(mockPerson),
             create: jest.fn().mockReturnValue(mockPerson),
             save: jest.fn().mockResolvedValue(mockPerson),
             delete: jest.fn().mockResolvedValue(true),
@@ -67,6 +68,9 @@ describe('PersonService', () => {
       getRepositoryToken(Person),
     );
     mediaRepository = module.get<Repository<Media>>(getRepositoryToken(Media));
+
+    // 重置所有 mock
+    jest.clearAllMocks();
   });
 
   it('should be defined', () => {
@@ -94,6 +98,7 @@ describe('PersonService', () => {
 
   describe('create', () => {
     it('should create a person', async () => {
+      jest.spyOn(personRepository, 'findOne').mockResolvedValue(null);
       jest.spyOn(bcrypt, 'genSalt').mockResolvedValue('salt' as never);
       jest.spyOn(bcrypt, 'hash').mockResolvedValue('hashedPassword' as never);
 
@@ -108,13 +113,27 @@ describe('PersonService', () => {
         BusinessException,
       );
     });
+
+    it('should throw error if phone already exists', async () => {
+      jest.spyOn(personRepository, 'findOne').mockResolvedValue(mockPerson);
+      await expect(service.create(mockCreatePersonDto)).rejects.toThrow(
+        '该手机号已被注册',
+      );
+    });
+
+    it('should throw error if phone is empty', async () => {
+      const dtoWithoutPhone = { ...mockCreatePersonDto, phone: '' };
+      await expect(service.create(dtoWithoutPhone)).rejects.toThrow(
+        '手机号不能为空',
+      );
+    });
   });
 
   describe('login', () => {
     it('should return person info when login successful', async () => {
       jest.spyOn(bcrypt, 'compare').mockResolvedValue(true as never);
       const result = await service.login(mockLoginDto);
-      const { password, ...expectedResult } = mockPerson;
+      const { password: _password, ...expectedResult } = mockPerson;
       expect(result).toEqual(expectedResult);
     });
 
@@ -131,12 +150,21 @@ describe('PersonService', () => {
         BusinessException,
       );
     });
+
+    it('should throw specific error message for invalid credentials', async () => {
+      jest.spyOn(personRepository, 'findOne').mockResolvedValue(mockPerson);
+      jest.spyOn(bcrypt, 'compare').mockResolvedValue(false as never);
+
+      await expect(service.login(mockLoginDto)).rejects.toThrow(
+        '手机号或密码错误',
+      );
+    });
   });
 
   describe('update', () => {
     it('should update a person', async () => {
       const result = await service.update(1, mockCreatePersonDto);
-      const { password, ...expectedResult } = mockPerson;
+      const { password: _password, ...expectedResult } = mockPerson;
       expect(result).toEqual(expectedResult);
     });
 
@@ -145,6 +173,53 @@ describe('PersonService', () => {
       await expect(service.update(1, mockCreatePersonDto)).rejects.toThrow(
         BusinessException,
       );
+    });
+
+    it('should throw error if new phone number already exists', async () => {
+      const existingPerson = { ...mockPerson, id: 2 };
+      jest
+        .spyOn(personRepository, 'findOne')
+        .mockResolvedValueOnce(mockPerson) // 第一次调用返回要更新的用户
+        .mockResolvedValueOnce(existingPerson); // 第二次调用返回已存在该手机号的其他用户
+
+      await expect(
+        service.update(1, { ...mockCreatePersonDto, phone: '13800138001' }),
+      ).rejects.toThrow('该手机号已被其他用户使用');
+    });
+
+    it('should allow keeping the same phone number', async () => {
+      jest
+        .spyOn(personRepository, 'findOne')
+        .mockResolvedValueOnce(mockPerson)
+        .mockResolvedValueOnce(mockPerson);
+
+      const result = await service.update(1, mockCreatePersonDto);
+      const { password: _password, ...expectedResult } = mockPerson;
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should update password if provided', async () => {
+      jest.spyOn(personRepository, 'findOne').mockResolvedValue(mockPerson);
+      jest.spyOn(bcrypt, 'genSalt').mockResolvedValue('salt' as never);
+      jest
+        .spyOn(bcrypt, 'hash')
+        .mockResolvedValue('newHashedPassword' as never);
+
+      await service.update(1, {
+        ...mockCreatePersonDto,
+        password: 'NewPassword123',
+      });
+
+      expect(bcrypt.hash).toHaveBeenCalledWith('NewPassword123', 'salt');
+    });
+
+    it('should not update icon if not provided', async () => {
+      jest.spyOn(personRepository, 'findOne').mockResolvedValue(mockPerson);
+      const dtoWithoutIcon = { ...mockCreatePersonDto };
+      delete dtoWithoutIcon.icon;
+
+      await service.update(1, dtoWithoutIcon);
+      expect(mediaRepository.findOneBy).not.toHaveBeenCalled();
     });
   });
 
