@@ -21,7 +21,7 @@ import { ProjectModule } from './project/project.module';
       password: '000719',
       database: 'youning',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
+      synchronize: process.env.NODE_ENV === 'development',
     }),
     MaterialModule,
     PersonModule,

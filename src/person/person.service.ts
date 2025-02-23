@@ -31,6 +31,24 @@ export class PersonService {
   async create(createPersonDto: CreatePersonDto): Promise<Person> {
     const person = new Person();
 
+    // 验证手机号是否已存在
+    if (createPersonDto.phone) {
+      const existingPerson = await this.personRepository.findOne({
+        where: { phone: createPersonDto.phone },
+      });
+      if (existingPerson) {
+        throw new BusinessException(
+          '该手机号已被注册',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    } else {
+      throw new BusinessException(
+        '手机号不能为空',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
     // 加密密码
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(createPersonDto.password, salt);
@@ -67,6 +85,7 @@ export class PersonService {
       where: { id },
       relations: ['icon'],
     });
+    
     if (!person) {
       throw new BusinessException(
         `Person with ID ${id} not found`,
@@ -74,10 +93,26 @@ export class PersonService {
       );
     }
 
+    // 如果要更新手机号，检查新手机号是否已被其他用户使用
+    if (updatePersonDto.phone && updatePersonDto.phone !== person.phone) {
+      const existingPerson = await this.personRepository.findOne({
+        where: { phone: updatePersonDto.phone },
+      });
+      if (existingPerson && existingPerson.id !== id) {
+        throw new BusinessException(
+          '该手机号已被其他用户使用',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+    }
+
     // 如果更新密码，需要重新加密
     if (updatePersonDto.password) {
       const salt = await bcrypt.genSalt();
-      updatePersonDto.password = await bcrypt.hash(updatePersonDto.password, salt);
+      updatePersonDto.password = await bcrypt.hash(
+        updatePersonDto.password,
+        salt,
+      );
     }
 
     Object.assign(person, updatePersonDto);
@@ -102,6 +137,7 @@ export class PersonService {
     });
 
     if (result) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { password, ...personWithoutPassword } = result;
       return personWithoutPassword as Person;
     }

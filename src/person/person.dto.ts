@@ -42,13 +42,13 @@ export class CreatePersonDto {
 
   @ApiProperty({
     description: '手机号',
-    required: false,
+    required: true,
     example: '13800138000',
   })
-  @IsOptional()
+  @IsNotEmpty({ message: '手机号不能为空' })
   @IsString({ message: '手机号必须是字符串' })
   @Length(11, 11, { message: '手机号必须是11位' })
-  phone?: string;
+  phone!: string;
 
   @ApiProperty({
     description: '头像ID',

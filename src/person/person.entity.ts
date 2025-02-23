@@ -27,7 +27,11 @@ export class Person {
   })
   authority!: Authority;
 
-  @Column({ length: 20, unique: true, comment: '手机号，用于登录' })
+  @Column({
+    length: 11,
+    nullable: false,
+    comment: '手机号，用于登录',
+  })
   phone!: string;
 
   @ManyToOne(() => Media)
