@@ -3,9 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Param,
-  Delete,
-  Put,
   NotFoundException,
   Query,
 } from '@nestjs/common';
@@ -20,7 +17,7 @@ import { ProjectReportService } from './project-report.service';
 import { ProjectReport } from './project-report.entity';
 import { CreateProjectReportDto } from './project-report.dto';
 import { Type } from 'class-transformer';
-import { IsDate, IsNumber } from 'class-validator';
+import { IsNumber } from 'class-validator';
 
 // 修改查询 DTO，移除日期参数
 export class FindReportQueryDto {

@@ -13,7 +13,7 @@ export class CreateProjectDto {
   @ApiProperty({ description: '项目名称', example: '测试项目' })
   @IsString({ message: '项目名称必须是字符串' })
   @Length(1, 100, { message: '项目名称长度必须在1-100之间' })
-  name: string;
+  name!: string;
 
   @ApiProperty({
     description: '项目地点',
@@ -52,7 +52,7 @@ export class CreateProjectDto {
   })
   @IsNotEmpty({ message: '媒体ID不能为空' })
   @IsNumber({}, { message: '媒体ID必须是数字' })
-  mediaId: number;
+  mediaId!: number;
 
   @ApiProperty({
     description: '备注',
@@ -71,7 +71,7 @@ export class CreateProjectDto {
   })
   @IsNotEmpty({ message: '负责人ID不能为空' })
   @IsNumber({}, { message: '负责人ID必须是数字' })
-  managerId: number;
+  managerId!: number;
 
   @ApiProperty({
     description: '创建人ID',
@@ -80,14 +80,5 @@ export class CreateProjectDto {
   })
   @IsNotEmpty({ message: '创建人ID不能为空' })
   @IsNumber({}, { message: '创建人ID必须是数字' })
-  createById: number;
-
-  @ApiProperty({
-    description: '创建时间',
-    required: true,
-    example: '2023-01-01T00:00:00Z',
-  })
-  @IsDate({ message: '创建时间必须是有效的日期格式' })
-  @Type(() => Date)
-  createTime: Date;
+  createById!: number;
 }

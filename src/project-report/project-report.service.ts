@@ -1,6 +1,6 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DataSource } from 'typeorm';
 import { ProjectReport } from './project-report.entity';
 import { Project } from '../project/project.entity';
 import { Person } from '../person/person.entity';
@@ -8,6 +8,11 @@ import { CreateProjectReportDto } from './project-report.dto';
 import { BusinessException } from '../common/exceptions/business.exception';
 import { startOfDay, endOfDay } from 'date-fns';
 import { Between } from 'typeorm';
+import { ProjectReportPerson } from '../project-report-person/project-report-person.entity';
+import { Store } from '../store/store.entity';
+import { StoreMaterial } from '../store-material/store-material.entity';
+import { StoreHistoryRecord } from '../store-history-record/store-history-record.entity';
+import { ChangeType } from '../store-history-record/store-history-record.enum';
 
 @Injectable()
 export class ProjectReportService {
@@ -18,6 +23,15 @@ export class ProjectReportService {
     private projectRepository: Repository<Project>,
     @InjectRepository(Person)
     private personRepository: Repository<Person>,
+    @InjectRepository(ProjectReportPerson)
+    private projectReportPersonRepository: Repository<ProjectReportPerson>,
+    @InjectRepository(Store)
+    private storeRepository: Repository<Store>,
+    @InjectRepository(StoreMaterial)
+    private storeMaterialRepository: Repository<StoreMaterial>,
+    @InjectRepository(StoreHistoryRecord)
+    private storeHistoryRecordRepository: Repository<StoreHistoryRecord>,
+    private readonly dataSource: DataSource,
   ) {}
 
   findAll(): Promise<ProjectReport[]> {
@@ -40,39 +54,115 @@ export class ProjectReportService {
     return projectReport;
   }
 
-  async create(
-    createProjectReportDto: CreateProjectReportDto,
-  ): Promise<ProjectReport> {
-    const projectReport = new ProjectReport();
+  async create(createDto: CreateProjectReportDto): Promise<ProjectReport> {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
 
-    // 查找并设置项目
-    const project = await this.projectRepository.findOneBy({
-      id: createProjectReportDto.projectId,
-    });
-    if (!project) {
-      throw new BusinessException(
-        `Project with ID ${createProjectReportDto.projectId} not found`,
-        HttpStatus.NOT_FOUND,
-      );
+    try {
+      // 1. 创建项目报告
+      const projectReport = new ProjectReport();
+
+      const project = await this.projectRepository.findOneBy({
+        id: createDto.projectId,
+      });
+      if (!project) {
+        throw new BusinessException(
+          `Project with ID ${createDto.projectId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      const createBy = await this.personRepository.findOneBy({
+        id: createDto.createById,
+      });
+      if (!createBy) {
+        throw new BusinessException(
+          `Person with ID ${createDto.createById} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      projectReport.project = project;
+      projectReport.createBy = createBy;
+      projectReport.createTime = new Date();
+      projectReport.remark = createDto.remark;
+
+      const savedProjectReport = await queryRunner.manager.save(projectReport);
+
+      // 2. 创建人员工时记录
+      for (const personItem of createDto.persons) {
+        const person = await this.personRepository.findOneBy({
+          id: personItem.personId,
+        });
+        if (!person) {
+          throw new BusinessException(
+            `Person with ID ${personItem.personId} not found`,
+            HttpStatus.NOT_FOUND,
+          );
+        }
+
+        const reportPerson = new ProjectReportPerson();
+        reportPerson.projectReport = savedProjectReport;
+        reportPerson.person = person;
+        reportPerson.workDays = personItem.workDays;
+        reportPerson.extraHours = personItem.extraHours;
+        reportPerson.gateDate = new Date();
+
+        await queryRunner.manager.save(reportPerson);
+      }
+
+      // 3. 创建材料消耗记录
+      const store = await this.storeRepository.findOne({
+        where: { project: { id: project.id } },
+      });
+      if (!store) {
+        throw new BusinessException(
+          `No store found for project ${project.id}`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+
+      for (const materialItem of createDto.materials) {
+        // 检查并更新库存
+        const storeMaterial = await this.storeMaterialRepository.findOne({
+          where: {
+            store: { id: store.id },
+            material: { id: materialItem.materialId },
+          },
+        });
+
+        if (!storeMaterial || storeMaterial.currentStock < materialItem.count) {
+          throw new BusinessException(
+            `Insufficient stock for material ${materialItem.materialId}`,
+            HttpStatus.BAD_REQUEST,
+          );
+        }
+
+        // 更新库存
+        storeMaterial.currentStock -= materialItem.count;
+        await queryRunner.manager.save(storeMaterial);
+
+        // 创建消耗记录
+        const historyRecord = new StoreHistoryRecord();
+        historyRecord.time = new Date();
+        historyRecord.store = store;
+        historyRecord.person = createBy;
+        historyRecord.changeType = ChangeType.CONSUME_OUT;
+        historyRecord.material = storeMaterial.material;
+        historyRecord.count = materialItem.count;
+
+        await queryRunner.manager.save(historyRecord);
+      }
+
+      await queryRunner.commitTransaction();
+      return savedProjectReport;
+    } catch (err) {
+      await queryRunner.rollbackTransaction();
+      throw err;
+    } finally {
+      await queryRunner.release();
     }
-
-    // 查找并设置创建人
-    const createBy = await this.personRepository.findOneBy({
-      id: createProjectReportDto.createById,
-    });
-    if (!createBy) {
-      throw new BusinessException(
-        `Person with ID ${createProjectReportDto.createById} not found`,
-        HttpStatus.NOT_FOUND,
-      );
-    }
-
-    projectReport.project = project;
-    projectReport.createBy = createBy;
-    projectReport.remark = createProjectReportDto.remark;
-    projectReport.createTime = createProjectReportDto.createTime;
-
-    return this.projectReportRepository.save(projectReport);
   }
 
   async update(
@@ -116,7 +206,6 @@ export class ProjectReportService {
     projectReport.project = project;
     projectReport.createBy = createBy;
     projectReport.remark = updateProjectReportDto.remark;
-    projectReport.createTime = updateProjectReportDto.createTime;
 
     await this.projectReportRepository.save(projectReport);
     const result = await this.projectReportRepository.findOne({

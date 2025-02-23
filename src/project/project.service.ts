@@ -35,7 +35,6 @@ export class ProjectService {
   }
 
   async create(createProjectDto: CreateProjectDto): Promise<Project> {
-    // 开启事务
     const queryRunner =
       this.projectRepository.manager.connection.createQueryRunner();
     await queryRunner.connect();
@@ -76,6 +75,7 @@ export class ProjectService {
       // 2. 创建项目
       const project = this.projectRepository.create({
         ...createProjectDto,
+        createTime: new Date(), // 自动设置创建时间
         media,
         manager,
         createBy,
@@ -84,15 +84,13 @@ export class ProjectService {
 
       // 3. 创建关联的仓库
       const store = this.storeRepository.create({
-        name: `${project.name}仓库`, // 使用项目名称作为仓库名称
+        name: `${project.name}仓库`,
         project: savedProject,
       });
       await queryRunner.manager.save(Store, store);
 
-      // 提交事务
       await queryRunner.commitTransaction();
 
-      // 返回包含完整关联信息的项目
       const result = await this.projectRepository.findOne({
         where: { id: savedProject.id },
         relations: ['media', 'manager', 'createBy'],
@@ -105,11 +103,9 @@ export class ProjectService {
       }
       return result;
     } catch (error) {
-      // 如果出错，回滚事务
       await queryRunner.rollbackTransaction();
       throw error;
     } finally {
-      // 释放查询运行器
       await queryRunner.release();
     }
   }
@@ -117,7 +113,7 @@ export class ProjectService {
   async update(
     id: number,
     updateProjectDto: CreateProjectDto,
-  ): Promise<Project | null> {
+  ): Promise<Project> {
     const project = await this.projectRepository.findOne({
       where: { id },
       relations: ['media', 'manager', 'createBy'],
@@ -160,22 +156,19 @@ export class ProjectService {
       );
     }
 
-    // 更新项目基本信息
+    // 更新项目基本信息，但保持原有的创建时间
     project.name = updateProjectDto.name;
     project.location = updateProjectDto.location;
     project.startTime = updateProjectDto.startTime;
     project.endTime = updateProjectDto.endTime;
     project.remark = updateProjectDto.remark;
-    project.createTime = updateProjectDto.createTime;
 
     // 更新关联实体
     project.media = media;
     project.manager = manager;
     project.createBy = createBy;
 
-    // 保存更新后的实体
     await this.projectRepository.save(project);
-
     return this.projectRepository.findOne({
       where: { id },
       relations: ['media', 'manager', 'createBy'],
