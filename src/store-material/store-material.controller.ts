@@ -11,6 +11,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { StoreMaterialService } from './store-material.service';
 import { StoreMaterial } from './store-material.entity';
+import { CreateStoreMaterialDto } from './store-material.dto';
 
 @ApiTags('store-materials')
 @Controller('store-materials')
@@ -39,7 +40,9 @@ export class StoreMaterialController {
   @Post()
   @ApiOperation({ summary: '创建商店材料' })
   @ApiResponse({ status: 201, description: '成功创建商店材料' })
-  create(@Body() storeMaterial: StoreMaterial): Promise<StoreMaterial> {
+  create(
+    @Body() storeMaterial: CreateStoreMaterialDto,
+  ): Promise<StoreMaterial> {
     return this.storeMaterialService.create(storeMaterial);
   }
 
@@ -49,7 +52,7 @@ export class StoreMaterialController {
   @ApiResponse({ status: 404, description: '商店材料未找到' })
   async update(
     @Param('id') id: string,
-    @Body() storeMaterial: StoreMaterial,
+    @Body() storeMaterial: CreateStoreMaterialDto,
   ): Promise<StoreMaterial> {
     const updatedStoreMaterial = await this.storeMaterialService.update(
       +id,

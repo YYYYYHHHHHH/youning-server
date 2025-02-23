@@ -11,6 +11,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { ProjectReportPersonService } from './project-report-person.service';
 import { ProjectReportPerson } from './project-report-person.entity';
+import { CreateProjectReportPersonDto } from './project-report-person.dto';
 
 @ApiTags('project-report-persons')
 @Controller('project-report-persons')
@@ -45,7 +46,7 @@ export class ProjectReportPersonController {
   @ApiOperation({ summary: '创建项目报告人员' })
   @ApiResponse({ status: 201, description: '成功创建项目报告人员' })
   create(
-    @Body() projectReportPerson: ProjectReportPerson,
+    @Body() projectReportPerson: CreateProjectReportPersonDto,
   ): Promise<ProjectReportPerson> {
     return this.projectReportPersonService.create(projectReportPerson);
   }

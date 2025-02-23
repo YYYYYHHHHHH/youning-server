@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Person } from './person.entity';
 import { Media } from '../media/media.entity';
 import { CreatePersonDto } from './person.dto';
+import { LoginDto } from './login.dto';
 import { BusinessException } from '../common/exceptions/business.exception';
 import * as bcrypt from 'bcrypt';
 
@@ -73,6 +74,12 @@ export class PersonService {
       );
     }
 
+    // 如果更新密码，需要重新加密
+    if (updatePersonDto.password) {
+      const salt = await bcrypt.genSalt();
+      updatePersonDto.password = await bcrypt.hash(updatePersonDto.password, salt);
+    }
+
     Object.assign(person, updatePersonDto);
 
     if (updatePersonDto.icon) {
@@ -89,10 +96,16 @@ export class PersonService {
     }
 
     await this.personRepository.save(person);
-    return this.personRepository.findOne({
+    const result = await this.personRepository.findOne({
       where: { id },
       relations: ['icon'],
     });
+
+    if (result) {
+      const { password, ...personWithoutPassword } = result;
+      return personWithoutPassword as Person;
+    }
+    return null;
   }
 
   async remove(id: number): Promise<void> {
@@ -104,5 +117,31 @@ export class PersonService {
       );
     }
     await this.personRepository.delete(id);
+  }
+
+  async login(loginDto: LoginDto): Promise<Person> {
+    // 使用手机号查找用户
+    const person = await this.personRepository.findOne({
+      where: { phone: loginDto.phone },
+      relations: ['icon'],
+    });
+
+    if (!person) {
+      throw new BusinessException('手机号或密码错误', HttpStatus.UNAUTHORIZED);
+    }
+
+    // 验证密码
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      person.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new BusinessException('手机号或密码错误', HttpStatus.UNAUTHORIZED);
+    }
+
+    // 返回用户信息（不包含密码）
+    const { password, ...result } = person;
+    return result as Person;
   }
 }

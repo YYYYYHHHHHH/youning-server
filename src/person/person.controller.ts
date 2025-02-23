@@ -12,6 +12,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { PersonService } from './person.service';
 import { Person } from './person.entity';
 import { CreatePersonDto } from './person.dto';
+import { LoginDto } from './login.dto';
 
 @ApiTags('persons')
 @Controller('persons')
@@ -68,5 +69,23 @@ export class PersonController {
   @ApiResponse({ status: 204, description: '成功删除人员' })
   remove(@Param('id') id: string): Promise<void> {
     return this.personService.remove(+id);
+  }
+
+  @Post('login')
+  @ApiOperation({
+    summary: '用户登录',
+    description: '用户登录接口，返回用户信息（不包含密码）',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '登录成功，返回用户信息',
+  })
+  @ApiResponse({
+    status: 401,
+    description: '登录失败，用户名或密码错误',
+  })
+  @ApiBody({ type: LoginDto })
+  async login(@Body() loginDto: LoginDto): Promise<Person> {
+    return this.personService.login(loginDto);
   }
 }

@@ -27,8 +27,8 @@ export class Person {
   })
   authority!: Authority;
 
-  @Column({ length: 20, nullable: true })
-  phone?: string;
+  @Column({ length: 20, unique: true, comment: '手机号，用于登录' })
+  phone!: string;
 
   @ManyToOne(() => Media)
   @JoinColumn()

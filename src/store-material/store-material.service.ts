@@ -115,7 +115,7 @@ export class StoreMaterialService {
     storeMaterial.warningThreshold = updateDto.warningThreshold;
 
     await this.storeMaterialRepository.save(storeMaterial);
-    return this.findOne(id);
+    return this.findOne(id) as any;
   }
 
   async remove(id: number): Promise<void> {

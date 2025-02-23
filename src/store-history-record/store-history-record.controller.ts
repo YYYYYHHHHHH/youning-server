@@ -11,6 +11,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { StoreHistoryRecordService } from './store-history-record.service';
 import { StoreHistoryRecord } from './store-history-record.entity';
+import { CreateStoreHistoryRecordDto } from './store-history-record.dto';
 
 @ApiTags('store-history-records')
 @Controller('store-history-records')
@@ -43,7 +44,7 @@ export class StoreHistoryRecordController {
   @ApiOperation({ summary: '创建商店历史记录' })
   @ApiResponse({ status: 201, description: '成功创建商店历史记录' })
   create(
-    @Body() storeHistoryRecord: StoreHistoryRecord,
+    @Body() storeHistoryRecord: CreateStoreHistoryRecordDto,
   ): Promise<StoreHistoryRecord> {
     return this.storeHistoryRecordService.create(storeHistoryRecord);
   }
