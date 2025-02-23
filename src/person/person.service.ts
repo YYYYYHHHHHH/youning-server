@@ -59,6 +59,11 @@ export class PersonService {
     person.authority = createPersonDto.authority;
     person.phone = createPersonDto.phone;
     person.create_time = new Date(); // 自动设置创建时间
+    person.createById = createPersonDto.createById; // 设置创建人ID
+    person.idCard = createPersonDto.idCard; // 设置身份证号
+    if (createPersonDto.bankCard) {
+      person.bankCard = createPersonDto.bankCard; // 设置银行卡号（如果有）
+    }
 
     // 设置头像
     if (createPersonDto.icon) {
