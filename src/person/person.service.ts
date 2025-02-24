@@ -6,7 +6,7 @@ import { Media } from '../media/media.entity';
 import { CreatePersonDto } from './person.dto';
 import { LoginDto } from './login.dto';
 import { BusinessException } from '../common/exceptions/business.exception';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';//哈希库，用于加密密码
 
 @Injectable()
 export class PersonService {
@@ -50,12 +50,13 @@ export class PersonService {
     }
 
     // 加密密码
-    const salt = await bcrypt.genSalt();
-    const hashedPassword = await bcrypt.hash(createPersonDto.password, salt);
+    // const salt = await bcrypt.genSalt();
+    // const hashedPassword = await bcrypt.hash(createPersonDto.password, salt);
 
     // 设置基本信息
     person.name = createPersonDto.name;
-    person.password = hashedPassword;
+    // person.password = hashedPassword;
+    person.password = createPersonDto.password; // 直接使用明文密码
     person.authority = createPersonDto.authority;
     person.phone = createPersonDto.phone;
     person.create_time = new Date(); // 自动设置创建时间
@@ -113,11 +114,12 @@ export class PersonService {
 
     // 如果更新密码，需要重新加密
     if (updatePersonDto.password) {
-      const salt = await bcrypt.genSalt();
-      updatePersonDto.password = await bcrypt.hash(
-        updatePersonDto.password,
-        salt,
-      );
+      // const salt = await bcrypt.genSalt();
+      // updatePersonDto.password = await bcrypt.hash(
+      //   updatePersonDto.password,
+      //   salt,
+      // );
+      person.password = updatePersonDto.password; // 直接使用明文密码
     }
 
     Object.assign(person, updatePersonDto);
@@ -172,12 +174,12 @@ export class PersonService {
     }
 
     // 验证密码
-    const isPasswordValid = await bcrypt.compare(
-      loginDto.password,
-      person.password,
-    );
-
-    if (!isPasswordValid) {
+    // const isPasswordValid = await bcrypt.compare(
+    //   loginDto.password,
+    //   person.password,
+    // );
+    // if (!isPasswordValid) {
+    if (loginDto.password !== person.password) { // 直接比较明文密码
       throw new BusinessException('手机号或密码错误', HttpStatus.UNAUTHORIZED);
     }
 
