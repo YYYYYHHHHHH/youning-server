@@ -25,15 +25,18 @@ describe('PersonService', () => {
     icon: { id: 1, url: 'http://example.com/icon.jpg' },
     idCard: '110101199001011234',
     bankCard: '6222021234567890123',
+    createById: 1,
   };
 
   const mockCreatePersonDto: CreatePersonDto = {
-
     name: '张三',
     password: 'Password123',
     authority: Authority.WORKER,
     phone: '13800138000',
     icon: 1,
+    idCard: '110101199001011234',
+    bankCard: '6222021234567890123',
+    createById: 1
   };
 
   const mockLoginDto: LoginDto = {

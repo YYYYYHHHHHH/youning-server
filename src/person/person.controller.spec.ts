@@ -15,7 +15,9 @@ describe('PersonController', () => {
     name: '张三',
     authority: Authority.WORKER,
     phone: '13800138000',
-    remark: '测试备注',
+    idCard: '110101199001011234',
+    bankCard: '6222021234567890123',
+    createById: 1,
     icon: { id: 1, url: 'http://example.com/icon.jpg' },
   };
 
@@ -24,7 +26,9 @@ describe('PersonController', () => {
     password: 'Password123',
     authority: Authority.WORKER,
     phone: '13800138000',
-    remark: '测试备注',
+    idCard: '110101199001011234',
+    bankCard: '6222021234567890123',
+    createById: 1,
     icon: 1,
   };
 

@@ -2,7 +2,7 @@ import {
   Entity,
   Column,
   PrimaryGeneratedColumn,
-  ManyToOne,
+  OneToOne,
   JoinColumn,
 } from 'typeorm';
 import { Media } from '../media/media.entity';
@@ -30,6 +30,7 @@ export class Person {
   @Column({
     length: 11,
     nullable: false,
+    unique: true,
     comment: '手机号，用于登录',
   })
   phone!: string;
@@ -37,13 +38,15 @@ export class Person {
   @Column({
     length: 18,
     nullable: false,
+    unique: true,
     comment: '身份证号',
+    default: '',
   })
   idCard!: string;
 
-  @ManyToOne(() => Media)
+  @OneToOne(() => Media, { nullable: false })
   @JoinColumn()
-  icon?: Media;
+  icon!: Media;
 
   @Column({
     length: 19,
@@ -54,4 +57,10 @@ export class Person {
 
   @Column({ type: 'datetime', nullable: false })
   create_time!: Date;
+
+  @Column({ nullable: false })
+  createById!: number;
+  // @ManyToOne(() => Person, { nullable: false })
+  // @JoinColumn()
+  // createBy!: Person;
 }

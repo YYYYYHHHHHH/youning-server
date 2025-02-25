@@ -52,6 +52,21 @@ export class PersonController {
   @ApiResponse({ status: 404, description: '人员未找到' })
   @ApiBody({
     description: '更新人员请求示例',
+    examples: {
+      example1: {
+        summary: '更新人员信息示例',
+        value: {
+          name: '张三',
+          password: 'password123',
+          authority: '管理员', // 可选值：销售、工地负责人、工人、管理员
+          phone: '13800138000',
+          idCard: '110101199001011234',
+          icon: 1,
+          createById: 1,
+          bankCard: '6222021234567890123' // 可选字段
+        }
+      }
+    }
   })
   async update(
     @Param('id') id: string,
