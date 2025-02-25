@@ -21,16 +21,18 @@ describe('PersonService', () => {
     password: 'hashedPassword123',
     authority: Authority.WORKER,
     phone: '13800138000',
-    remark: '测试备注',
+    create_time: new Date('2024-01-01'),
     icon: { id: 1, url: 'http://example.com/icon.jpg' },
+    idCard: '110101199001011234',
+    bankCard: '6222021234567890123',
   };
 
   const mockCreatePersonDto: CreatePersonDto = {
+
     name: '张三',
     password: 'Password123',
     authority: Authority.WORKER,
     phone: '13800138000',
-    remark: '测试备注',
     icon: 1,
   };
 

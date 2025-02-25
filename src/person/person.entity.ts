@@ -34,16 +34,24 @@ export class Person {
   })
   phone!: string;
 
+  @Column({
+    length: 18,
+    nullable: false,
+    comment: '身份证号',
+  })
+  idCard!: string;
+
   @ManyToOne(() => Media)
   @JoinColumn()
   icon?: Media;
 
-  @Column({ length: 500, nullable: true })
-  remark?: string;
-
-  @Column({ length: 18, nullable: true })
-  idCard?: string;
-
-  @Column({ length: 19, nullable: true })
+  @Column({
+    length: 19,
+    nullable: true,
+    comment: '银行卡号',
+  })
   bankCard?: string;
+
+  @Column({ type: 'datetime', nullable: false })
+  create_time!: Date;
 }

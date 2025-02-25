@@ -58,12 +58,12 @@ export class PersonService {
     person.password = hashedPassword;
     person.authority = createPersonDto.authority;
     person.phone = createPersonDto.phone;
-    person.remark = createPersonDto.remark;
+    person.create_time = new Date(); // 自动设置创建时间
 
     // 设置头像
     if (createPersonDto.icon) {
       const media = await this.mediaRepository.findOneBy({
-        id: createPersonDto.icon,
+        id: createPersonDto.icon, // icon 字段关联到 Media 表的 id
       });
       if (!media) {
         throw new BusinessException(
