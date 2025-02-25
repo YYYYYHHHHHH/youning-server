@@ -80,6 +80,14 @@ export class PersonService {
       person.icon = media;
     }
 
+    // 添加身份证号和银行卡号
+    if (createPersonDto.idCard) {
+      person.idCard = createPersonDto.idCard;
+    }
+    if (createPersonDto.bankCard) {
+      person.bankCard = createPersonDto.bankCard;
+    }
+
     return this.personRepository.save(person);
   }
 
@@ -135,6 +143,14 @@ export class PersonService {
         );
       }
       person.icon = media;
+    }
+
+    // 更新身份证号和银行卡号
+    if (updatePersonDto.idCard !== undefined) {
+      person.idCard = updatePersonDto.idCard;
+    }
+    if (updatePersonDto.bankCard !== undefined) {
+      person.bankCard = updatePersonDto.bankCard;
     }
 
     await this.personRepository.save(person);
