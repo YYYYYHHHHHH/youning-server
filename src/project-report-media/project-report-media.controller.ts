@@ -53,15 +53,6 @@ export class FindMediasByProjectQueryDto {
   @IsNumber()
   @Type(() => Number)
   projectId!: number;
-
-  @ApiProperty({
-    description: '创建人ID',
-    required: true,
-    example: 1,
-  })
-  @IsNumber()
-  @Type(() => Number)
-  createById!: number;
 }
 
 @ApiTags('project-report-medias')
@@ -187,24 +178,22 @@ export class ProjectReportMediaController {
   @Get('by-project')
   @ApiOperation({
     summary: '查找项目所有报告媒体',
-    description: '根据项目ID和创建人ID查找所有报告媒体',
+    description: '根据项目ID查找所有报告媒体',
   })
   @ApiResponse({
     status: 200,
-    description: '成功获取项目报告媒体列表',
-    type: [ProjectReportMedia],
+    description: '成功获取项目报告媒体列表'
   })
-  async findByProjectAndCreator(
+  async findByProject(
     @Query() query: FindMediasByProjectQueryDto,
   ): Promise<ProjectReportMedia[]> {
-    const medias = await this.projectReportMediaService.findByProjectAndCreator(
+    const medias = await this.projectReportMediaService.findByProject(
       query.projectId,
-      query.createById,
     );
 
     if (!medias.length) {
       throw new NotFoundException(
-        `No project report medias found for project ${query.projectId} and creator ${query.createById}`,
+        `No project report medias found for project ${query.projectId}`,
       );
     }
 

@@ -22,6 +22,7 @@ export class MediaService implements OnModuleDestroy {
     this.connectToFtp();
   }
 
+  //FTP 服务器的连接配置
   private async connectToFtp() {
     try {
       await this.ftpClient.access({
@@ -55,50 +56,55 @@ export class MediaService implements OnModuleDestroy {
   findAll(): Promise<Media[]> {
     return this.mediaRepository.find();
   }
-
+  
   findOne(id: number): Promise<Media | null> {
     return this.mediaRepository.findOneBy({ id });
   }
-
-  async create(file: any, creatorId: number): Promise<Media> {
-    const creator = await this.personRepository.findOneBy({ id: creatorId });
+  //接收上传的文件,file 包含文件类型、文件原名、文件内容
+  async create(file: any, createById: number): Promise<Media> {
+    const creator = await this.personRepository.findOneBy({ id: createById });
     if (!creator) {
       throw new BusinessException(
-        `Creator with ID ${creatorId} not found`,
+        `Creator with ID ${createById} not found`,
         HttpStatus.NOT_FOUND,
       );
     }
-
+    //确保 FTP 连接可用
     await this.ensureFtpConnection();
 
+    //保存文件信息到数据库
     const media = new Media();
-    media.mediaType = file.mimetype;
-    media.originalName = file.originalname;
-    media.createTime = new Date();
-    media.createBy = creator;
+    media.mediaType = file.mimetype;//文件类型
+    media.originalName = file.originalname;//文件原名
+    media.createTime = new Date();//创建时间
+    media.createBy = creator;//创建者
 
+    //生成文件名（使用时间戳和随机数确保唯一性）
     const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
     const random = Math.floor(Math.random() * 10000);
     const filename = `${timestamp}_${random}_${file.originalname}`;
     const directoryPath = '/home/';
 
+   
     try {
-      await this.ftpClient.ensureDir(directoryPath);
+      await this.ftpClient.ensureDir(directoryPath); //确保目标目录存在
+      //创建文件流，将文件buffer转换为可读流
       const fileStream = new Readable();
-      fileStream._read = () => {};
-      fileStream.push(file.buffer);
-      fileStream.push(null);
+      fileStream._read = () => {};//创建 Readable 流
+      fileStream.push(file.buffer);//写入文件内容
+      fileStream.push(null);//结束流（push(null)）
 
+      //通过 FTP 上传到服务器
       await this.ftpClient.uploadFrom(
         fileStream,
         `${directoryPath}${filename}`,
-      );
-      media.uri = `${directoryPath}${filename}`;
+      );//上传文件流到指定路径
+      media.uri = `${directoryPath}${filename}`;//保存文件的URI到media对象
     } catch (error: any) {
       throw new BusinessException(
         'Failed to upload file to FTP server: ' + error.message,
         HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      );//如果上传过程中出现错误，会抛出 BusinessException：
     }
 
     return this.mediaRepository.save(media);

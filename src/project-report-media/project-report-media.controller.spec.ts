@@ -39,7 +39,7 @@ describe('ProjectReportMediaController', () => {
             findByDateAndProjectAndCreator: jest
               .fn()
               .mockResolvedValue([mockProjectReportMedia]),
-            findByProjectAndCreator: jest
+            findByProject: jest
               .fn()
               .mockResolvedValue([mockProjectReportMedia]),
           },
@@ -101,22 +101,21 @@ describe('ProjectReportMediaController', () => {
     });
   });
 
-  describe('findByProjectAndCreator', () => {
-    const mockQuery = { projectId: 1, createById: 1 };
+  describe('findByProject', () => {
+    const mockQuery = { projectId: 1 };
 
     it('should return all project report medias', async () => {
-      const result = await controller.findByProjectAndCreator(mockQuery);
+      const result = await controller.findByProject(mockQuery);
       expect(result).toEqual([mockProjectReportMedia]);
-      expect(service.findByProjectAndCreator).toHaveBeenCalledWith(
-        mockQuery.projectId,
-        mockQuery.createById,
+      expect(service.findByProject).toHaveBeenCalledWith(
+        mockQuery.projectId
       );
     });
 
     it('should throw NotFoundException when no medias found', async () => {
-      jest.spyOn(service, 'findByProjectAndCreator').mockResolvedValue([]);
+      jest.spyOn(service, 'findByProject').mockResolvedValue([]);
       await expect(
-        controller.findByProjectAndCreator(mockQuery),
+        controller.findByProject(mockQuery),
       ).rejects.toThrow(NotFoundException);
     });
   });

@@ -31,7 +31,7 @@ export class ProjectReport {
   @JoinColumn()
   project!: Project;
 
-  @OneToMany(() => ProjectReportMedia, (media) => media.projectReport)
+  @OneToMany(() => ProjectReportMedia, (media) => media.projectReport, { eager: true })
   projectReportMedias?: ProjectReportMedia[];
 
   @OneToMany(() => ProjectReportPerson, (person) => person.projectReport)

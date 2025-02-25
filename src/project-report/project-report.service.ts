@@ -415,23 +415,18 @@ export class ProjectReportService {
 
   async findByProject(projectId: number): Promise<ProjectReport[]> {
     // 1. 获取指定项目的所有日报
-    const reports = await this.projectReportRepository.find({
-      where: {
-        project: { id: projectId },
-      },
-      relations: [
-        'project',
-        'createBy',
-        'projectReportMedias',
-        'projectReportMedias.media',
-        'projectReportMedias.media.createBy',
-        'projectReportPersons',
-        'projectReportPersons.person',
-      ],
-      order: {
-        createTime: 'DESC',
-      },
-    });
+    const reports = await this.projectReportRepository
+      .createQueryBuilder('report')
+      .leftJoinAndSelect('report.project', 'project')
+      .leftJoinAndSelect('report.createBy', 'createBy')
+      .leftJoinAndSelect('report.projectReportMedias', 'projectReportMedias')
+      .leftJoinAndSelect('projectReportMedias.media', 'media')
+      .leftJoinAndSelect('media.createBy', 'mediaCreateBy')
+      .leftJoinAndSelect('report.projectReportPersons', 'projectReportPersons')
+      .leftJoinAndSelect('projectReportPersons.person', 'person')
+      .where('report.project.id = :projectId', { projectId })
+      .orderBy('report.createTime', 'DESC')
+      .getMany();
 
     // 2. 为每个报告查找对应的历史记录
     const reportsWithHistory = await Promise.all(

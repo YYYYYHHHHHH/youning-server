@@ -21,8 +21,8 @@ export class Media {
   @Column('datetime', { nullable: true })
   createTime?: Date;
 
-  @Column({ length: 200, nullable: true })
-  location?: string;
+  // @Column({ length: 200, nullable: true })
+  // location?: string;
 
   @Column({ length: 500, nullable: true })
   originalName?: string;

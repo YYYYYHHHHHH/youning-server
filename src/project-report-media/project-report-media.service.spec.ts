@@ -89,9 +89,9 @@ describe('ProjectReportMediaService', () => {
     });
   });
 
-  describe('findByProjectAndCreator', () => {
-    it('should find all project report medias by project and creator', async () => {
-      const result = await service.findByProjectAndCreator(1, 1);
+  describe('findByProject', () => {
+    it('should find all project report medias by project', async () => {
+      const result = await service.findByProject(1);
       expect(result).toEqual([mockProjectReportMedia]);
       expect(projectReportMediaRepository.find).toHaveBeenCalled();
     });

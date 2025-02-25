@@ -191,15 +191,13 @@ export class ProjectReportMediaService {
     });
   }
 
-  async findByProjectAndCreator(
+  async findByProject(
     projectId: number,
-    createById: number,
   ): Promise<ProjectReportMedia[]> {
     return this.projectReportMediaRepository.find({
       where: {
         projectReport: {
           project: { id: projectId },
-          createBy: { id: createById },
         },
       },
       relations: [

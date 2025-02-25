@@ -56,7 +56,7 @@ export class MediaController {
         summary: '示例媒体文件上传',
         value: {
           file: 'example.jpg', // 这是一个示例文件名，实际上传时会是文件本身
-          creatorId: 1, // 示例创建人ID
+          createById: 1, // 示例创建人ID
         },
       },
     },
@@ -65,9 +65,9 @@ export class MediaController {
   @ApiResponse({ status: 201, description: '成功上传媒体文件' })
   async uploadFile(
     @UploadedFile() file: any,
-    @Body('creatorId') creatorId: number,
+    @Body('createById') createById: number,
   ): Promise<Media> {
-    return this.mediaService.create(file, creatorId);
+    return this.mediaService.create(file, createById);
   }
 
   @Put(':id')
