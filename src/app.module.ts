@@ -10,6 +10,7 @@ import { StoreHistoryRecordModule } from './store-history-record/store-history-r
 import { StoreMaterialModule } from './store-material/store-material.module';
 import { MediaModule } from './media/media.module';
 import { ProjectModule } from './project/project.module';
+import { ProjectMediaRelationModule } from './project-media-relation/project-media-relation.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ProjectModule } from './project/project.module';
     StoreMaterialModule,
     MediaModule,
     ProjectModule,
+    ProjectMediaRelationModule,
   ],
 })
 export class AppModule {}

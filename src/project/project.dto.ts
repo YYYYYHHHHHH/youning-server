@@ -8,6 +8,7 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+import { ProjectStatus } from './project.enum';
 
 export class CreateProjectDto {
   @ApiProperty({ description: '项目名称', example: '测试项目' })
@@ -55,16 +56,6 @@ export class CreateProjectDto {
   mediaId!: number;
 
   @ApiProperty({
-    description: '备注',
-    required: false,
-    example: '这是一个测试项目的备注',
-  })
-  @IsOptional()
-  @IsString({ message: '备注必须是字符串' })
-  @Length(0, 500, { message: '备注长度不能超过500' })
-  remark?: string;
-
-  @ApiProperty({
     description: '负责人ID',
     required: true,
     example: 1,
@@ -81,4 +72,24 @@ export class CreateProjectDto {
   @IsNotEmpty({ message: '创建人ID不能为空' })
   @IsNumber({}, { message: '创建人ID必须是数字' })
   createById!: number;
+
+  @ApiProperty({
+    description: '甲方联系人电话',
+    required: false,
+    example: '13800138000',
+  })
+  @IsOptional()
+  @IsString({ message: '联系电话必须是字符串' })
+  @Length(0, 12, { message: '联系电话长度不能超过12位' })
+  clientPhone?: string;
+
+  @ApiProperty({
+    description: '项目状态',
+    enum: ProjectStatus,
+    default: ProjectStatus.IN_PROGRESS,
+    example: ProjectStatus.IN_PROGRESS,
+    required: false//非必填，没有填写时采用默认值：施工中
+  })
+  @IsOptional()
+  status?: ProjectStatus;//status字段类型为可选
 }

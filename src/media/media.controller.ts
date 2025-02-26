@@ -21,14 +21,15 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { MediaService } from './media.service';
 import { Media } from './media.entity';
 
-@ApiTags('medias')
+// Swagger 相关的装饰器
+@ApiTags('medias')// 给接口分组
 @Controller('medias')
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
 
   @Get()
-  @ApiOperation({ summary: '获取所有媒体' })
-  @ApiResponse({ status: 200, description: '成功获取媒体列表' })
+  @ApiOperation({ summary: '获取所有媒体' }) // 接口描述
+  @ApiResponse({ status: 200, description: '成功获取媒体列表' })// 响应说明
   findAll(): Promise<Media[]> {
     return this.mediaService.findAll();
   }
@@ -48,7 +49,7 @@ export class MediaController {
   @Post('upload')
   @ApiOperation({ summary: '上传媒体文件' })
   @ApiConsumes('multipart/form-data')
-  @ApiBody({
+  @ApiBody({// 请求体说明
     description: '媒体文件上传',
     type: 'multipart/form-data',
     examples: {

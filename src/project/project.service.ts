@@ -259,7 +259,8 @@ export class ProjectService {
     project.location = updateProjectDto.location;
     project.startTime = updateProjectDto.startTime;
     project.endTime = updateProjectDto.endTime;
-    project.remark = updateProjectDto.remark;
+    project.status = updateProjectDto.status || project.status;
+    project.clientPhone = updateProjectDto.clientPhone;
 
     // 更新关联实体
     project.media = media;
