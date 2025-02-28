@@ -4,7 +4,9 @@ import {
   ManyToOne,
   Column,
   JoinColumn,
+  RelationId,
 } from 'typeorm';
+import { ProjectReport } from '../project-report/project-report.entity';
 import { Store } from '../store/store.entity';
 import { Person } from '../person/person.entity';
 import { Material } from '../material/material.entity';
@@ -47,4 +49,17 @@ export class StoreHistoryRecord {
 
   @Column('decimal', { precision: 10, scale: 2 })
   count!: number;
+
+  // 定义与项目日报的多对一关系
+  // nullable: true 表示这个关联可以为空，因为可能不是每日日报消耗的
+  @ManyToOne(() => ProjectReport, { nullable: true })
+  @JoinColumn()
+  projectReport?: ProjectReport;
+
+  // 单独存储日报ID的列
+  // @RelationId 装饰器会自动从 projectReport 关系中提取 ID 值
+  // 这样可以直接获取 ID 而不需要加载整个日报对象
+  @Column({ nullable: true, comment: '关联的项目日报 id' })
+  @RelationId((record: StoreHistoryRecord) => record.projectReport)
+  projectReportId?: number;
 }

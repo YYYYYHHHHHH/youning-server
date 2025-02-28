@@ -54,15 +54,10 @@ export class ProjectReportService {
     // 2. 为每个报告查找对应的历史记录
     const reportsWithHistory = await Promise.all(
       reports.map(async (report) => {
-        const dayStart = startOfDay(report.createTime);
-        const dayEnd = endOfDay(report.createTime);
-
         const historyRecords = await this.storeHistoryRecordRepository.find({
           where: {
-            time: Between(dayStart, dayEnd),// 条件1：在当天时间范围内
-            store: { project: { id: report.project.id } }, // 条件2：属于特定项目
-            person: { id: report.createBy.id },// 条件3：特定操作人
-            changeType: ChangeType.CONSUME_OUT,// 条件4：变动类型是消耗出库
+            projectReportId: report.id,
+            changeType: ChangeType.CONSUME_OUT,
           },
           relations: ['store', 'store.project', 'person', 'material'],
           order: {
@@ -101,14 +96,9 @@ export class ProjectReportService {
     }
 
     // 查找相关的历史记录
-    const dayStart = startOfDay(projectReport.createTime);
-    const dayEnd = endOfDay(projectReport.createTime);
-
     const historyRecords = await this.storeHistoryRecordRepository.find({
       where: {
-        time: Between(dayStart, dayEnd),
-        store: { project: { id: projectReport.project.id } },
-        person: { id: projectReport.createBy.id },
+        projectReportId: projectReport.id,
         changeType: ChangeType.CONSUME_OUT,
       },
       relations: ['store', 'store.project', 'person', 'material'],
@@ -229,6 +219,7 @@ export class ProjectReportService {
         historyRecord.changeType = ChangeType.CONSUME_OUT;
         historyRecord.material = storeMaterial.material;
         historyRecord.count = materialItem.count;
+        historyRecord.projectReportId = savedProjectReport.id;
 
         await queryRunner.manager.save(historyRecord);
       }
@@ -376,9 +367,7 @@ export class ProjectReportService {
     // 2. 查找相关的历史记录
     const historyRecords = await this.storeHistoryRecordRepository.find({
       where: {
-        time: Between(dayStart, dayEnd),
-        store: { project: { id: projectId } },
-        person: { id: createById },
+        projectReportId: projectReport.id,
         changeType: ChangeType.CONSUME_OUT,
       },
       relations: ['store', 'store.project', 'person', 'material'],
@@ -412,14 +401,11 @@ export class ProjectReportService {
     // 2. 为每个报告查找对应的历史记录
     const reportsWithHistory = await Promise.all(
       reports.map(async (report) => {
-        const dayStart = startOfDay(report.createTime);
-        const dayEnd = endOfDay(report.createTime);
+
 
         const historyRecords = await this.storeHistoryRecordRepository.find({
           where: {
-            time: Between(dayStart, dayEnd),
-            store: { project: { id: projectId } },
-            person: { id: report.createBy.id },
+            projectReportId: report.id,
             changeType: ChangeType.CONSUME_OUT,
           },
           relations: ['store', 'store.project', 'person', 'material'],
