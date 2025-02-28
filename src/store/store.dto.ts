@@ -22,4 +22,14 @@ export class CreateStoreDto {
   @IsOptional()
   @IsNumber({}, { message: '项目ID必须是数字' })
   projectId?: number;
+
+  @ApiProperty({
+    description: '关联的媒体ID',
+    required: false,
+    example: 1,
+    type: Number,
+  })
+  @IsOptional()
+  @IsNumber({}, { message: '媒体ID必须是数字' })
+  mediaId?: number;
 }

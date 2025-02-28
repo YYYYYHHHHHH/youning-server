@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Store } from './store.entity';
 import { Project } from '../project/project.entity';
+import { Media } from '../media/media.entity';
 import { CreateStoreDto } from './store.dto';
 import { BusinessException } from '../common/exceptions/business.exception';
 
@@ -13,6 +14,8 @@ export class StoreService {
     private storeRepository: Repository<Store>,
     @InjectRepository(Project)
     private projectRepository: Repository<Project>,
+    @InjectRepository(Media)
+    private mediaRepository: Repository<Media>,
   ) {}
 
   findAll(): Promise<Store[]> {
@@ -53,6 +56,19 @@ export class StoreService {
       store.project = project;
     }
 
+    if (createStoreDto.mediaId) {
+      const media = await this.mediaRepository.findOneBy({
+        id: createStoreDto.mediaId,
+      });
+      if (!media) {
+        throw new BusinessException(
+          `Media with ID ${createStoreDto.mediaId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      store.media = media;
+    }
+
     return this.storeRepository.save(store);
   }
 
@@ -83,6 +99,19 @@ export class StoreService {
         );
       }
       store.project = project;
+    }
+
+    if (updateStoreDto.mediaId) {
+      const media = await this.mediaRepository.findOneBy({
+        id: updateStoreDto.mediaId,
+      });
+      if (!media) {
+        throw new BusinessException(
+          `Media with ID ${updateStoreDto.mediaId} not found`,
+          HttpStatus.NOT_FOUND,
+        );
+      }
+      store.media = media;
     }
 
     await this.storeRepository.save(store);

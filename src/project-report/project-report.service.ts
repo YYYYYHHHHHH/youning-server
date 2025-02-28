@@ -59,10 +59,10 @@ export class ProjectReportService {
 
         const historyRecords = await this.storeHistoryRecordRepository.find({
           where: {
-            time: Between(dayStart, dayEnd),
-            store: { project: { id: report.project.id } },
-            person: { id: report.createBy.id },
-            changeType: ChangeType.CONSUME_OUT,
+            time: Between(dayStart, dayEnd),// 条件1：在当天时间范围内
+            store: { project: { id: report.project.id } }, // 条件2：属于特定项目
+            person: { id: report.createBy.id },// 条件3：特定操作人
+            changeType: ChangeType.CONSUME_OUT,// 条件4：变动类型是消耗出库
           },
           relations: ['store', 'store.project', 'person', 'material'],
           order: {
@@ -182,22 +182,20 @@ export class ProjectReportService {
       }
 
       // 3. 创建材料消耗记录
-      let store = await this.storeRepository.findOne({
+      const store = await this.storeRepository.findOne({
         where: { project: { id: project.id } },
       });
 
-      // 如果项目没有关联仓库，就创建一个
       if (!store) {
-        store = this.storeRepository.create({
-          name: `${project.name}仓库`,
-          project: project,
-        });
-        await queryRunner.manager.save(store);
+        throw new BusinessException(
+          `Project ${project.id} does not have an associated store`,
+          HttpStatus.NOT_FOUND,
+        );
       }
 
       for (const materialItem of createDto.materials) {
-        // 检查并更新库存
-        let storeMaterial = await this.storeMaterialRepository.findOne({
+        // 检查库存
+        const storeMaterial = await this.storeMaterialRepository.findOne({
           where: {
             store: { id: store.id },
             material: { id: materialItem.materialId },
@@ -205,27 +203,11 @@ export class ProjectReportService {
           relations: ['material'],
         });
 
-        // 如果没有库存记录，创建一个新的，初始库存设为 100
         if (!storeMaterial) {
-          const material = await queryRunner.manager.findOne(Material, {
-            where: { id: materialItem.materialId },
-          });
-
-          if (!material) {
-            throw new BusinessException(
-              `Material with ID ${materialItem.materialId} not found`,
-              HttpStatus.NOT_FOUND,
-            );
-          }
-
-          storeMaterial = this.storeMaterialRepository.create({
-            store: store,
-            material: material,
-            currentStock: 100, // 设置初始库存为 100
-            warningThreshold: 20, // 设置预警阈值为 20
-          });
-
-          await queryRunner.manager.save(storeMaterial);
+          throw new BusinessException(
+            `No stock record found for material ${materialItem.materialId} in store ${store.id}`,
+            HttpStatus.NOT_FOUND,
+          );
         }
 
         // 检查库存是否充足

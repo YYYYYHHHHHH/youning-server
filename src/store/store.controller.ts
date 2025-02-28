@@ -1,6 +1,7 @@
 import {
   Controller,
   Get,
+  Post,
   Param,
   Delete,
   Put,
@@ -71,6 +72,20 @@ export class StoreController {
       throw new NotFoundException(`Store with ID ${id} not found`);
     }
     return updatedStore;
+  }
+
+  @Post()
+  @ApiOperation({
+    summary: '创建仓库',
+    description: '创建新的仓库，可以同时设置仓库名称和关联的项目。',
+  })
+  @ApiResponse({
+    status: 201,
+    description: '成功创建仓库。返回创建的仓库信息，包含关联的项目详情。',
+  })
+  @ApiBody({ type: CreateStoreDto })
+  create(@Body() createStoreDto: CreateStoreDto): Promise<Store> {
+    return this.storeService.create(createStoreDto);
   }
 
   @Delete(':id')

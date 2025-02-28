@@ -6,6 +6,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Project } from '../project/project.entity';
+import { Media } from '../media/media.entity';
 
 @Entity()
 export class Store {
@@ -18,4 +19,8 @@ export class Store {
   @ManyToOne(() => Project, { nullable: true })
   @JoinColumn()
   project?: Project;
+
+  @ManyToOne(() => Media, { nullable: true })
+  @JoinColumn()
+  media?: Media;
 }
