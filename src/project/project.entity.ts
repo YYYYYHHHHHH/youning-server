@@ -9,9 +9,6 @@ import {
 import { Media } from '../media/media.entity';
 import { Person } from '../person/person.entity';
 import { ProjectStatus } from './project.enum';
-import { ProjectReportPerson } from '../project-report-person/project-report-person.entity';
-import { StoreHistoryRecord } from '../store-history-record/store-history-record.entity';
-import { StoreMaterial } from '../store-material/store-material.entity';
 import { ProjectMediaRelation } from '../project-media-relation/project-media-relation.entity';
 
 @Entity()
@@ -52,10 +49,6 @@ export class Project {
   @Column({ type: 'varchar', length: 12, nullable: true })//12 位电话号码的原因是包含区号的座机号码
   clientPhone?: string;
 
-  // 虚拟字段，不会存入数据库
-  projectWorkerTimeRecords?: ProjectReportPerson[]; // 工人工时记录
-  materialConsumptionRecords?: StoreHistoryRecord[]; // 物料消耗记录
-  currentMaterialStock?: StoreMaterial[]; // 当前物料库存
   @OneToMany(() => ProjectMediaRelation, (relation: ProjectMediaRelation) => relation.project)
   projectMediaRelations?: ProjectMediaRelation[];
 }

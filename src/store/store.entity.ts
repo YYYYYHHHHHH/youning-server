@@ -16,8 +16,9 @@ export class Store {
   @Column({ length: 100 })
   name!: string;
 
-  @ManyToOne(() => Project, { nullable: true })
-  @JoinColumn()
+  // 在删除项目工地时，相关的仓库记录会被保留，且其project字段会自动设置为null
+  @ManyToOne(() => Project, { nullable: true, onDelete: 'SET NULL' })
+  @JoinColumn({ name: 'projectId' })
   project?: Project;
 
   @ManyToOne(() => Media, { nullable: true })

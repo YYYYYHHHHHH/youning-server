@@ -5,12 +5,7 @@ import { Project } from './project.entity';
 import { CreateProjectDto } from './project.dto';
 import { Media } from '../media/media.entity';
 import { Person } from '../person/person.entity';
-import { Store } from '../store/store.entity';
 import { BusinessException } from '../common/exceptions/business.exception';
-import { ProjectReportPerson } from '../project-report-person/project-report-person.entity';
-import { StoreHistoryRecord } from '../store-history-record/store-history-record.entity';
-import { ChangeType } from '../store-history-record/store-history-record.enum';
-import { StoreMaterial } from '../store-material/store-material.entity';
 
 @Injectable()
 export class ProjectService {
@@ -21,66 +16,12 @@ export class ProjectService {
     private mediaRepository: Repository<Media>,
     @InjectRepository(Person)
     private personRepository: Repository<Person>,
-    @InjectRepository(Store)
-    private storeRepository: Repository<Store>,
-    @InjectRepository(ProjectReportPerson)
-    private projectReportPersonRepository: Repository<ProjectReportPerson>,
-    @InjectRepository(StoreHistoryRecord)
-    private storeHistoryRecordRepository: Repository<StoreHistoryRecord>,
-    @InjectRepository(StoreMaterial)
-    private storeMaterialRepository: Repository<StoreMaterial>,
   ) {}
 
   async findAll(): Promise<Project[]> {
-    // 1. 查询所有项目
-    const projects = await this.projectRepository.find({
+    return this.projectRepository.find({
       relations: ['media', 'manager', 'createBy'],
     });
-
-    // 2. 为每个项目查询关联数据
-    const projectsWithDetails = await Promise.all(
-      projects.map(async (project) => {
-        // 查询工人工时
-        const projectWorkerTimeRecords =
-          await this.projectReportPersonRepository
-            .createQueryBuilder('reportPerson')
-            .leftJoinAndSelect('reportPerson.person', 'person')
-            .leftJoinAndSelect('reportPerson.projectReport', 'report')
-            .where('report.project.id = :projectId', { projectId: project.id })
-            .getMany();
-
-        // 查询物料消耗记录
-        const materialConsumptionRecords =
-          await this.storeHistoryRecordRepository
-            .createQueryBuilder('history')
-            .leftJoinAndSelect('history.material', 'material')
-            .leftJoinAndSelect('history.person', 'person')
-            .leftJoinAndSelect('history.store', 'store')
-            .where('store.project.id = :projectId', { projectId: project.id })
-            .andWhere('history.changeType = :changeType', {
-              changeType: ChangeType.CONSUME_OUT,
-            })
-            .orderBy('history.time', 'DESC')
-            .getMany();
-
-        // 查询当前仓库的物料库存
-        const currentMaterialStock = await this.storeMaterialRepository
-          .createQueryBuilder('storeMaterial')
-          .leftJoinAndSelect('storeMaterial.material', 'material')
-          .leftJoinAndSelect('storeMaterial.store', 'store')
-          .where('store.project.id = :projectId', { projectId: project.id })
-          .getMany();
-
-        return {
-          ...project,
-          projectWorkerTimeRecords,
-          materialConsumptionRecords,
-          currentMaterialStock,
-        };
-      }),
-    );
-
-    return projectsWithDetails;
   }
 
   async findOne(id: number): Promise<Project | null> {
@@ -94,42 +35,7 @@ export class ProjectService {
       return null;
     }
 
-    // 2. 查询项目相关的工人工时
-    const projectWorkerTimeRecords = await this.projectReportPersonRepository
-      .createQueryBuilder('reportPerson')
-      .leftJoinAndSelect('reportPerson.person', 'person')
-      .leftJoinAndSelect('reportPerson.projectReport', 'report')
-      .where('report.project.id = :projectId', { projectId: id })
-      .getMany();
-
-    // 3. 查询项目相关的物料消耗记录
-    const materialConsumptionRecords = await this.storeHistoryRecordRepository
-      .createQueryBuilder('history')
-      .leftJoinAndSelect('history.material', 'material')
-      .leftJoinAndSelect('history.person', 'person')
-      .leftJoinAndSelect('history.store', 'store')
-      .where('store.project.id = :projectId', { projectId: id })
-      .andWhere('history.changeType = :changeType', {
-        changeType: ChangeType.CONSUME_OUT,
-      })
-      .orderBy('history.time', 'DESC')
-      .getMany();
-
-    // 4. 查询当前仓库的物料库存
-    const currentMaterialStock = await this.storeMaterialRepository
-      .createQueryBuilder('storeMaterial')
-      .leftJoinAndSelect('storeMaterial.material', 'material')
-      .leftJoinAndSelect('storeMaterial.store', 'store')
-      .where('store.project.id = :projectId', { projectId: id })
-      .getMany();
-
-    // 5. 合并结果
-    return {
-      ...project,
-      projectWorkerTimeRecords,
-      materialConsumptionRecords,
-      currentMaterialStock,
-    };
+    return project;
   }
 
   async create(createProjectDto: CreateProjectDto): Promise<Project> {
@@ -179,13 +85,6 @@ export class ProjectService {
         createBy,
       });
       const savedProject = await queryRunner.manager.save(Project, project);
-
-      // 3. 创建关联的仓库
-      const store = this.storeRepository.create({
-        name: `${project.name}仓库`,
-        project: savedProject,
-      });
-      await queryRunner.manager.save(Store, store);
 
       await queryRunner.commitTransaction();
 

@@ -176,7 +176,6 @@ export class ProjectReportService {
         reportPerson.person = person;
         reportPerson.workDays = personItem.workDays;
         reportPerson.extraHours = personItem.extraHours;
-        reportPerson.gateDate = new Date();
 
         await queryRunner.manager.save(reportPerson);
       }

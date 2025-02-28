@@ -70,7 +70,6 @@ export class ProjectReportPersonService {
     projectReportPerson.person = person;
     projectReportPerson.workDays = createProjectReportPersonDto.workDays;
     projectReportPerson.extraHours = createProjectReportPersonDto.extraHours;
-    projectReportPerson.gateDate = createProjectReportPersonDto.gateDate;
 
     return this.projectReportPersonRepository.save(projectReportPerson);
   }
