@@ -1,6 +1,6 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { StoreHistoryRecord } from './store-history-record.entity';
 import { Store } from '../store/store.entity';
 import { Person } from '../person/person.entity';
@@ -33,6 +33,49 @@ export class StoreHistoryRecordService {
       where: { id },
       relations: ['store', 'person', 'fromStore', 'toStore', 'material'],
     });
+  }
+
+  findByStoreId(storeId: number): Promise<StoreHistoryRecord[]> {
+    return this.storeHistoryRecordRepository.find({
+      where: { store: { id: storeId } },
+      relations: ['store', 'person', 'fromStore', 'toStore', 'material'],
+      //按照该条记录的时间降序排序，确保最新的记录显示在前
+      order: { time: 'DESC' }
+    });
+  }
+
+  async findByProjectId(projectId: number): Promise<StoreHistoryRecord[]> {
+    // 先通过项目ID查找关联的仓库
+    const stores = await this.storeRepository.find({
+      where: { project: { id: projectId } },
+      relations: ['project'],
+    });
+
+    if (!stores || stores.length === 0) {
+      throw new BusinessException(
+        `No stores found for Project ID ${projectId}`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // 获取所有仓库ID
+    const storeIds = stores.map(store => store.id);
+
+    // 查询这些仓库的所有变动记录
+    const historyRecords = await this.storeHistoryRecordRepository.find({
+      where: { store: { id: In(storeIds) } },
+      relations: ['store', 'person', 'fromStore', 'toStore', 'material'],
+      order: { time: 'DESC' }, // 按时间降序排序
+    });
+
+    if (!historyRecords || historyRecords.length === 0) {
+      throw new BusinessException(
+        `No history records found for stores in Project ID ${projectId}`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return historyRecords;
   }
 
   async create(

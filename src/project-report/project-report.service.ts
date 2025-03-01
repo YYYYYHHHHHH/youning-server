@@ -386,31 +386,32 @@ export class ProjectReportService {
   async findByProject(projectId: number): Promise<ProjectReport[]> {
     // 1. 获取指定项目的所有日报
     const reports = await this.projectReportRepository
-      .createQueryBuilder('report')
-      .leftJoinAndSelect('report.project', 'project')
-      .leftJoinAndSelect('report.createBy', 'createBy')
-      .leftJoinAndSelect('report.projectReportMedias', 'projectReportMedias')
-      .leftJoinAndSelect('projectReportMedias.media', 'media')
-      .leftJoinAndSelect('media.createBy', 'mediaCreateBy')
-      .leftJoinAndSelect('report.projectReportPersons', 'projectReportPersons')
-      .leftJoinAndSelect('projectReportPersons.person', 'person')
+      // 1. 使用 TypeORM 的 QueryBuilder 来构建复杂的关联查询，可以更灵活地控制关联查询 优化查询性能 处理更复杂的查询条件
+      .createQueryBuilder('report') // 创建查询构建器，'report' 是主表别名
+      // 关联查询：
+      .leftJoinAndSelect('report.createBy', 'createBy')// 关联日报创建人
+      .leftJoinAndSelect('report.projectReportMedias', 'projectReportMedias')// 关联日报图片关系表
+      .leftJoinAndSelect('projectReportMedias.media', 'media')// 关联具体图片信息
+      .leftJoinAndSelect('report.projectReportPersons', 'projectReportPersons')// 关联工人工时记录
+      .leftJoinAndSelect('projectReportPersons.person', 'person')// 关联具体工人信息
+      // 查询条件：匹配项目ID
       .where('report.project.id = :projectId', { projectId })
-      .orderBy('report.createTime', 'DESC')
-      .getMany();
+      .orderBy('report.createTime', 'DESC')// 按创建时间倒序排序
+      .getMany();// 执行查询并返回结果
 
     // 2. 为每个报告查找对应的历史记录
     const reportsWithHistory = await Promise.all(
       reports.map(async (report) => {
 
-
+        // 查询与当前日报相关的物料消耗记录
         const historyRecords = await this.storeHistoryRecordRepository.find({
           where: {
-            projectReportId: report.id,
-            changeType: ChangeType.CONSUME_OUT,
+            projectReportId: report.id, // 筛选条件1：匹配日报ID
+            changeType: ChangeType.CONSUME_OUT, // 筛选条件2：变动类型为消耗出库
           },
-          relations: ['store', 'store.project', 'person', 'material'],
+          relations: ['material'],// 关联物料信息
           order: {
-            time: 'DESC',
+            time: 'DESC',// 按时间倒序排列，最新的记录在前
           },
         });
 

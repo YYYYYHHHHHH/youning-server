@@ -1,6 +1,10 @@
 import { IsNotEmpty, IsNumber, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
+/**
+ * 创建仓库材料库存信息
+ * 注意：同一个仓库不能创建多条相同材料的库存信息，(storeId, materialId)组合必须唯一
+ */
 export class CreateStoreMaterialDto {
   @ApiProperty({
     description: '仓库ID',

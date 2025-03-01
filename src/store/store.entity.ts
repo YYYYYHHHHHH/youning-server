@@ -3,10 +3,13 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  OneToMany,
   JoinColumn,
 } from 'typeorm';
 import { Project } from '../project/project.entity';
 import { Media } from '../media/media.entity';
+import { StoreMaterial } from '../store-material/store-material.entity';
+import { StoreHistoryRecord } from '../store-history-record/store-history-record.entity';
 
 @Entity()
 export class Store {
@@ -24,4 +27,10 @@ export class Store {
   @ManyToOne(() => Media, { nullable: true })
   @JoinColumn()
   media?: Media;
+
+  @OneToMany(() => StoreMaterial, (storeMaterial) => storeMaterial.store)
+  materials?: StoreMaterial[];
+
+  @OneToMany(() => StoreHistoryRecord, (historyRecord) => historyRecord.store)
+  historyRecords?: StoreHistoryRecord[];
 }

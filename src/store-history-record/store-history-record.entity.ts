@@ -43,7 +43,7 @@ export class StoreHistoryRecord {
   @JoinColumn()
   toStore?: Store;
 
-  @ManyToOne(() => Material)
+  @ManyToOne(() => Material, { nullable: false })
   @JoinColumn()
   material!: Material;
 

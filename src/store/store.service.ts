@@ -20,14 +20,15 @@ export class StoreService {
 
   findAll(): Promise<Store[]> {
     return this.storeRepository.find({
-      relations: ['project', 'project.createBy', 'project.manager'],
+      relations: ['project', 'project.createBy', 'project.manager', 'media'],
     });
   }
 
+  // 根据仓库ID获取单个仓库的详细信息
   async findOne(id: number): Promise<Store | null> {
     const store = await this.storeRepository.findOne({
       where: { id },
-      relations: ['project', 'project.createBy', 'project.manager'],
+      relations: ['project', 'project.createBy', 'media', 'materials', 'materials.material', 'historyRecords', 'historyRecords.material', 'historyRecords.person', 'historyRecords.fromStore', 'historyRecords.toStore'],
     });
     if (!store) {
       throw new BusinessException(
@@ -117,7 +118,7 @@ export class StoreService {
     await this.storeRepository.save(store);
     const result = await this.storeRepository.findOne({
       where: { id },
-      relations: ['project', 'project.createBy', 'project.manager'],
+      relations: ['project', 'project.createBy', 'project.manager', 'media'],
     });
     if (!result) {
       throw new BusinessException(
@@ -126,6 +127,22 @@ export class StoreService {
       );
     }
     return result;
+  }
+  // 通过工地项目ID查询关联的仓库信息
+  async findByProjectId(projectId: number): Promise<Store[]> {
+    const stores = await this.storeRepository.find({
+      where: { project: { id: projectId } },
+      relations: ['project', 'project.createBy', 'media', 'materials', 'materials.material', 'historyRecords', 'historyRecords.material', 'historyRecords.person', 'historyRecords.fromStore', 'historyRecords.toStore'],
+    });
+
+    if (!stores || stores.length === 0) {
+      throw new BusinessException(
+        `No stores found for Project ID ${projectId}`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return stores;
   }
 
   async remove(id: number): Promise<void> {

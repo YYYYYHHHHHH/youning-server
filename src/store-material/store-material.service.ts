@@ -1,6 +1,6 @@
 import { Injectable, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { StoreMaterial } from './store-material.entity';
 import { Store } from '../store/store.entity';
 import { Material } from '../material/material.entity';
@@ -22,6 +22,55 @@ export class StoreMaterialService {
     return this.storeMaterialRepository.find({
       relations: ['store', 'material'],
     });
+  }
+
+  async findByStoreId(storeId: number): Promise<StoreMaterial[]> {
+    const storeMaterials = await this.storeMaterialRepository.find({
+      where: { store: { id: storeId } },
+      relations: ['store', 'material'],
+    });
+
+    if (!storeMaterials || storeMaterials.length === 0) {
+      throw new BusinessException(
+        `No materials found in store with ID ${storeId}`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return storeMaterials;
+  }
+
+  async findByProjectId(projectId: number): Promise<StoreMaterial[]> {
+    // 先通过项目ID查找关联的仓库
+    const stores = await this.storeRepository.find({
+      where: { project: { id: projectId } },
+      relations: ['project'],
+    });
+
+    if (!stores || stores.length === 0) {
+      throw new BusinessException(
+        `No stores found for Project ID ${projectId}`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // 获取所有仓库ID，防止出现一个项目多个仓库的情况
+    const storeIds = stores.map(store => store.id);
+
+    // 查询这些仓库的所有材料库存信息
+    const storeMaterials = await this.storeMaterialRepository.find({
+      where: { store: { id: In(storeIds) } },
+      relations: ['material'],
+    });
+
+    if (!storeMaterials || storeMaterials.length === 0) {
+      throw new BusinessException(
+        `No materials found in stores for Project ID ${projectId}`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return storeMaterials;
   }
 
   async findOne(id: number): Promise<StoreMaterial | null> {

@@ -94,4 +94,18 @@ export class StoreController {
   remove(@Param('id') id: string): Promise<void> {
     return this.storeService.remove(+id);
   }
+
+  @Get('project/:projectId')
+  @ApiOperation({
+    summary: '根据项目ID获取仓库列表',
+    description: '获取指定项目ID下的所有仓库信息，包含每个仓库的详细信息、关联的项目信息以及仓库内所有材料的库存情况。',
+  })
+  @ApiResponse({
+    status: 200,
+    description: '成功获取项目关联的仓库列表。每个仓库对象都包含完整的关联信息，包括仓库内所有材料的当前库存量和预警阈值。',
+  })
+  @ApiResponse({ status: 404, description: '未找到指定项目ID的仓库' })
+  findByProjectId(@Param('projectId') projectId: string): Promise<Store[]> {
+    return this.storeService.findByProjectId(+projectId);
+  }
 }
