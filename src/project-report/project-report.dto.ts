@@ -35,23 +35,24 @@ export class ProjectReportPersonItemDto {
   workDays!: number;
 
   @ApiProperty({
-    description: '额外加班小时数（0-8的整数）',
+    description: '额外加班小时数（0-5的整数）',
     required: true,
     example: 2,
   })
   @IsNumber()
   @Min(0)
-  @Max(8)
+  @Max(5)
   extraHours!: number;
 }
 
 export class ProjectReportMaterialItemDto {
   @ApiProperty({
-    description: '材料ID',
+    description: '材料ID（必须是仓库库存中存在的材料）',
     required: true,
     example: 1,
   })
   @IsNumber()
+  @IsNotEmpty({ message: '材料ID不能为空' })
   materialId!: number;
 
   @ApiProperty({
@@ -111,4 +112,15 @@ export class CreateProjectReportDto {
   @ValidateNested({ each: true })
   @Type(() => ProjectReportMaterialItemDto)
   materials!: ProjectReportMaterialItemDto[];
+
+  @ApiProperty({
+    description: '日报图片ID列表',
+    type: [Number],
+    required: false,
+    example: [1, 2, 3],
+  })
+  @IsArray({ message: '图片ID列表必须是数组' })
+  @IsNumber({}, { each: true, message: '图片ID必须是数字' })
+  @IsOptional()
+  mediaIds?: number[];
 }

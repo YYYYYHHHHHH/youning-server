@@ -11,6 +11,8 @@ import { ProjectReportPerson } from '../project-report-person/project-report-per
 import { Store } from '../store/store.entity';
 import { StoreMaterial } from '../store-material/store-material.entity';
 import { StoreHistoryRecord } from '../store-history-record/store-history-record.entity';
+import { Media } from '../media/media.entity';
+import { ProjectReportMedia } from '../project-report-media/project-report-media.entity';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { StoreHistoryRecord } from '../store-history-record/store-history-record
       Store,
       StoreMaterial,
       StoreHistoryRecord,
+      Media,
+      ProjectReportMedia,
     ]),
     ProjectModule,
     PersonModule,
