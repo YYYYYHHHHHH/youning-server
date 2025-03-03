@@ -11,7 +11,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { StoreMaterialService } from './store-material.service';
 import { StoreMaterial } from './store-material.entity';
-import { CreateStoreMaterialDto } from './store-material.dto';
+import { CreateStoreMaterialDto, UpdateStoreMaterialDto } from './store-material.dto';
 
 @ApiTags('store-materials')
 @Controller('store-materials')
@@ -82,6 +82,29 @@ export class StoreMaterialController {
     );
     if (!updatedStoreMaterial) {
       throw new NotFoundException(`StoreMaterial with ID ${id} not found`);
+    }
+    return updatedStoreMaterial;
+  }
+
+  @Put('store/:storeId/material/:materialId')
+  @ApiOperation({
+    summary: '根据仓库ID和材料ID更新库存信息',
+    description: '通过仓库ID和材料ID更新指定仓库中特定材料的库存信息。只需提供currentStock和warningThreshold字段。'
+  })
+  @ApiResponse({ status: 200, description: '成功更新仓库材料库存信息' })
+  @ApiResponse({ status: 404, description: '未找到指定仓库或材料' })
+  async updateByStoreAndMaterial(
+    @Param('storeId') storeId: string,
+    @Param('materialId') materialId: string,
+    @Body() storeMaterial: UpdateStoreMaterialDto,
+  ): Promise<StoreMaterial> {
+    const updatedStoreMaterial = await this.storeMaterialService.updateByStoreAndMaterial(
+      +storeId,
+      +materialId,
+      storeMaterial,
+    );
+    if (!updatedStoreMaterial) {
+      throw new NotFoundException(`Material with ID ${materialId} not found in store ${storeId}`);
     }
     return updatedStoreMaterial;
   }

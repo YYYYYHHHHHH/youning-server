@@ -38,6 +38,7 @@ export class StoreMaterial {
     scale: 2,
     default: 0,
     comment: '库存预警阈值',
+    nullable: true,
   })
-  warningThreshold!: number;
+  warningThreshold!: number | null;
 }

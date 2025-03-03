@@ -56,14 +56,16 @@ export class ProjectReportMaterialItemDto {
   materialId!: number;
 
   @ApiProperty({
-    description: '消耗数量（整数）',
+    description: '消耗数量（支持小数，最多两位小数）',
     required: true,
     example: 10,
-    type: 'integer',
+    type: 'number',
   })
-  @IsNumber({}, { message: '消耗数量必须是数字' })
-  @IsInt({ message: '消耗数量必须是整数' })
-  @Min(1, { message: '消耗数量必须大于0' })
+  @IsNumber(
+    { maxDecimalPlaces: 2 },
+    { message: '消耗数量必须是数字，且最多支持两位小数' }
+  )
+  @Min(0.01, { message: '消耗数量必须大于0' })
   count!: number;
 }
 

@@ -4,7 +4,7 @@ import { Repository, In } from 'typeorm';
 import { StoreMaterial } from './store-material.entity';
 import { Store } from '../store/store.entity';
 import { Material } from '../material/material.entity';
-import { CreateStoreMaterialDto } from './store-material.dto';
+import { CreateStoreMaterialDto, UpdateStoreMaterialDto } from './store-material.dto';
 import { BusinessException } from '../common/exceptions/business.exception';
 
 @Injectable()
@@ -27,7 +27,8 @@ export class StoreMaterialService {
   async findByStoreId(storeId: number): Promise<StoreMaterial[]> {
     const storeMaterials = await this.storeMaterialRepository.find({
       where: { store: { id: storeId } },
-      relations: ['store', 'material'],
+      // relations: ['store', 'material'],
+      relations: ['material'],
     });
 
     if (!storeMaterials || storeMaterials.length === 0) {
@@ -115,7 +116,7 @@ export class StoreMaterialService {
     storeMaterial.store = store;
     storeMaterial.material = material;
     storeMaterial.currentStock = createDto.currentStock;
-    storeMaterial.warningThreshold = createDto.warningThreshold;
+    storeMaterial.warningThreshold = createDto.warningThreshold !== undefined ? createDto.warningThreshold : null;
 
     return this.storeMaterialRepository.save(storeMaterial);
   }
@@ -161,10 +162,36 @@ export class StoreMaterialService {
     storeMaterial.store = store;
     storeMaterial.material = material;
     storeMaterial.currentStock = updateDto.currentStock;
-    storeMaterial.warningThreshold = updateDto.warningThreshold;
+    storeMaterial.warningThreshold = updateDto.warningThreshold !== undefined ? updateDto.warningThreshold : null;
 
     await this.storeMaterialRepository.save(storeMaterial);
     return this.findOne(id) as any;
+  }
+
+  async updateByStoreAndMaterial(
+    storeId: number,
+    materialId: number,
+    updateDto: UpdateStoreMaterialDto,
+  ): Promise<StoreMaterial> {
+    // 查找指定仓库中的特定材料记录
+    const existingStoreMaterial = await this.storeMaterialRepository.findOne({
+      where: {
+        store: { id: storeId },
+        material: { id: materialId },
+      },
+      relations: ['store', 'material'],
+    });
+
+    if (!existingStoreMaterial) {
+      throw new BusinessException(
+        `Material with ID ${materialId} not found in store ${storeId}`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // 更新库存信息
+    Object.assign(existingStoreMaterial, updateDto);
+    return this.storeMaterialRepository.save(existingStoreMaterial);
   }
 
   async remove(id: number): Promise<void> {

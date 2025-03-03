@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, Min, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 /**
@@ -37,12 +37,40 @@ export class CreateStoreMaterialDto {
 
   @ApiProperty({
     description: '库存预警阈值',
-    required: true,
+    required: false,
     example: 20.0,
     minimum: 0,
   })
-  @IsNotEmpty({ message: '库存预警阈值不能为空' })
+  @IsOptional()
   @IsNumber({}, { message: '库存预警阈值必须是数字' })
   @Min(0, { message: '库存预警阈值不能小于0' })
-  warningThreshold!: number;
+  warningThreshold?: number;
+}
+
+/**
+ * 更新仓库材料库存信息
+ * 用于更新库存量和预警阈值
+ */
+export class UpdateStoreMaterialDto {
+  @ApiProperty({
+    description: '当前库存量',
+    required: false,
+    example: 100.5,
+    minimum: 0,
+  })
+  @IsOptional()
+  @IsNumber({}, { message: '当前库存量必须是数字' })
+  @Min(0, { message: '当前库存量不能小于0' })
+  currentStock?: number;
+
+  @ApiProperty({
+    description: '库存预警阈值',
+    required: false,
+    example: 20.0,
+    minimum: 0,
+  })
+  @IsOptional()
+  @IsNumber({}, { message: '库存预警阈值必须是数字' })
+  @Min(0, { message: '库存预警阈值不能小于0' })
+  warningThreshold?: number;
 }

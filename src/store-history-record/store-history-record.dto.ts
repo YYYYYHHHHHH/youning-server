@@ -12,16 +12,6 @@ import { ChangeType } from './store-history-record.enum';
 
 export class CreateStoreHistoryRecordDto {
   @ApiProperty({
-    description: '变动时间',
-    required: true,
-    example: new Date(),
-  })
-  @IsNotEmpty({ message: '变动时间不能为空' })
-  @IsDate({ message: '变动时间必须是日期类型' })
-  @Type(() => Date)
-  time!: Date;
-
-  @ApiProperty({
     description: '仓库ID',
     required: true,
     example: 1,
