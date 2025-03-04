@@ -113,6 +113,41 @@ export class ProjectReportPersonService {
 
   
   /**
+   * 获取所有人员的工时汇总信息
+   * 
+   * @returns 返回包含每个人员工时统计的数组，每个元素包含：
+   * - personId: 人员ID
+   * - personName: 人员姓名
+   * - authority: 人员权限级别
+   * - iconUrl: 头像地址
+   * - totalWorkDays: 总工作天数
+   * - totalExtraHours: 总加班小时数
+   */
+  async getWorkSummary(): Promise<any[]> {
+    // 使用QueryBuilder进行聚合查询，计算每个人员的总工时
+    const workSummary = await this.projectReportPersonRepository
+      .createQueryBuilder('projectReportPerson')
+      .leftJoinAndSelect('projectReportPerson.person', 'person')// 关联人员表
+      .leftJoinAndSelect('person.icon', 'icon') // 关联头像表
+      .select([
+        'person.id as personId', // 选择人员ID
+        'person.name as personName',// 选择人员姓名
+        'person.authority as authority',// 选择权限级别
+        'icon.uri as iconUrl',// 选择头像地址
+        'SUM(projectReportPerson.workDays) as totalWorkDays',// 计算总工作天数
+        'SUM(projectReportPerson.extraHours) as totalExtraHours'// 计算总加班小时数
+      ])
+      .groupBy('person.id')// 按人员ID分组
+      .addGroupBy('person.name')// 需要显示的字段都要加入分组
+      .addGroupBy('person.authority')
+      .addGroupBy('icon.uri')
+      .getRawMany();// 获取原始查询结果
+
+    return workSummary;
+  }
+
+
+  /**
    * 根据项目ID查询项目报告人员情况
    * 
    * @param projectId - 项目ID

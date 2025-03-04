@@ -27,6 +27,13 @@ export class ProjectReportPersonController {
     return this.projectReportPersonService.findAll();
   }
 
+  @Get('work-summary')
+  @ApiOperation({ summary: '获取所有人员的工时汇总' })
+  @ApiResponse({ status: 200, description: '成功获取人员工时汇总列表' })
+  async getWorkSummary(): Promise<any[]> {
+    return this.projectReportPersonService.getWorkSummary();
+  }
+
   @Get('person/:personId')
   @ApiOperation({ summary: '根据人员ID获取工时记录' })
   @ApiResponse({ status: 200, description: '成功获取人员工时记录列表' })
