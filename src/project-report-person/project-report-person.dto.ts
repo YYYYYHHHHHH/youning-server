@@ -2,14 +2,13 @@ import {
   IsNotEmpty,
   IsNumber,
   IsDate,
-  IsEnum,
   Min,
   Max,
   IsInt,
+  IsIn,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { WorkDays } from './project-report-person.enum';
 
 export class CreateProjectReportPersonDto {
   @ApiProperty({
@@ -33,12 +32,13 @@ export class CreateProjectReportPersonDto {
   @ApiProperty({
     description: '工作天数（只能是0、0.5或1）',
     required: true,
-    example: WorkDays.ZERO,
-    enum: WorkDays,
+    example: 0,
+    type: 'number',
   })
   @IsNotEmpty({ message: '工作天数不能为空' })
-  @IsEnum(WorkDays, { message: '工作天数只能是0、0.5或1' })
-  workDays!: WorkDays;
+  @IsNumber({}, { message: '工作天数必须是数字' })
+  @IsIn([0, 0.5, 1], { message: '工作天数只能是0、0.5或1' })
+  workDays!: number;
 
   @ApiProperty({
     description: '额外加班小时数（0-8的整数）',

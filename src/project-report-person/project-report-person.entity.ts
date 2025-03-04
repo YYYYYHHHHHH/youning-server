@@ -5,7 +5,6 @@ import {
   Column,
   JoinColumn,
 } from 'typeorm';
-import { WorkDays } from './project-report-person.enum';
 import { ProjectReport } from '../project-report/project-report.entity';
 import { Person } from '../person/person.entity';
 
@@ -24,8 +23,8 @@ export class ProjectReportPerson {
   @JoinColumn()
   person!: Person;
 
-  @Column('enum', { enum: WorkDays })
-  workDays!: WorkDays;
+  @Column('decimal', { precision: 2, scale: 1 })
+  workDays!: number;
 
   @Column('int')
   extraHours!: number;

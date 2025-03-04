@@ -10,9 +10,11 @@ import {
   Max,
   IsIn,
   IsInt,
+  IsEnum,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+
 
 export class ProjectReportPersonItemDto {
   @ApiProperty({
@@ -27,11 +29,11 @@ export class ProjectReportPersonItemDto {
     description: '工作天数（只能是0、0.5或1）',
     required: true,
     example: 1,
-    enum: [0, 0.5, 1],
+    type: 'number'
   })
   @IsNotEmpty()
-  @IsNumber()
-  @IsIn([0, 0.5, 1])
+  @IsNumber({}, { message: '工作天数必须是数字' })
+  @IsIn([0, 0.5, 1], { message: '工作天数只能是0、0.5或1' })
   workDays!: number;
 
   @ApiProperty({

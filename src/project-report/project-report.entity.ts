@@ -31,6 +31,7 @@ export class ProjectReport {
   @JoinColumn()
   project!: Project;
 
+  // 在实体关系中设置了eager: true时，每次查询主实体时都会自动加载这个关联关系，不需要显式指定relations。
   @OneToMany(() => ProjectReportMedia, (media) => media.projectReport, { eager: true })
   projectReportMedias?: ProjectReportMedia[];
 
