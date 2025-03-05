@@ -11,6 +11,12 @@ import { StoreMaterialModule } from './store-material/store-material.module';
 import { MediaModule } from './media/media.module';
 import { ProjectModule } from './project/project.module';
 import { ProjectMediaRelationModule } from './project-media-relation/project-media-relation.module';
+import { ContractModule } from './contract/contract.module';
+import { ContractMediaModule } from './contract-media/contract-media.module';
+import { FollowUpModule } from './follow-up/follow-up.module';
+import { FollowUpMediaModule } from './follow-up-media/follow-up-media.module';
+import { ProjectPhotoModule } from './project-photos/project-photo.module';
+import { SalesProjectModule } from './sales-project/sales-project.module';
 
 @Module({
   imports: [
@@ -35,6 +41,12 @@ import { ProjectMediaRelationModule } from './project-media-relation/project-med
     MediaModule,
     ProjectModule,
     ProjectMediaRelationModule,
+    ContractModule,
+    ContractMediaModule,
+    FollowUpModule,
+    FollowUpMediaModule,
+    ProjectPhotoModule,
+    SalesProjectModule,
   ],
 })
 export class AppModule {}
