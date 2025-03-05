@@ -7,6 +7,7 @@ import { Media } from '../media/media.entity';
 import { CreateSalesProjectDto, UpdateSalesProjectDto } from './sales-project.dto';
 import { BusinessException } from '../common/exceptions/business.exception';
 import { Authority } from '../person/person.enum';
+import { Progress } from '../follow-up/follow-up.enum';
 
 @Injectable()
 export class SalesProjectService {
@@ -139,5 +140,23 @@ export class SalesProjectService {
   async remove(id: number): Promise<void> {
     const salesProject = await this.findOne(id);
     await this.salesProjectRepository.remove(salesProject);
+  }
+
+  async getLatestProgress(id: number): Promise<Progress | null> {
+    const salesProject = await this.salesProjectRepository.findOne({
+      where: { id },
+      relations: ['followUps'],
+    });
+
+    if (!salesProject || !salesProject.followUps || salesProject.followUps.length === 0) {
+      return null;
+    }
+
+    // 按照跟进时间降序排序，获取最新的进度状态
+    const latestFollowUp = salesProject.followUps.sort(
+      (a, b) => b.followUpTime.getTime() - a.followUpTime.getTime(),
+    )[0];
+
+    return latestFollowUp.progress;
   }
 }

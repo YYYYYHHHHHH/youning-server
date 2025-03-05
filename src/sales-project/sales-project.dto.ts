@@ -1,6 +1,5 @@
-import { IsNotEmpty, IsString, IsEnum, IsInt, IsOptional, IsDateString } from 'class-validator';
+import { IsNotEmpty, IsString, IsInt, IsOptional, IsDateString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { Progress } from '../follow-up/follow-up.enum';
 
 export class CreateSalesProjectDto {
   @ApiProperty({

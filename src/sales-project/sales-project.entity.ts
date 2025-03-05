@@ -23,12 +23,6 @@ export class SalesProject {
   @Column({ length: 255 })
   site: string;
 
-  @Column({
-    type: 'enum',
-    enum: Progress,
-  })
-  progress: Progress;
-
   @Column({ type: 'datetime' })
   createTime: Date;
 
