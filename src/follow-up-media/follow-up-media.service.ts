@@ -17,7 +17,6 @@ export class FollowUpMediaService {
     const followUpMedia = new FollowUpMedia();
     followUpMedia.followUp = { id: followUpId } as any;
     followUpMedia.media = { id: mediaId } as any;
-    followUpMedia.createTime = new Date();
     return this.followUpMediaRepository.save(followUpMedia);
   }
 

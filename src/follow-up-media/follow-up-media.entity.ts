@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { FollowUp } from '../follow-up/follow-up.entity';
 import { Media } from '../media/media.entity';
 
@@ -6,9 +6,6 @@ import { Media } from '../media/media.entity';
 export class FollowUpMedia {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column({ type: 'datetime' })
-  createTime: Date;
 
   @ManyToOne(() => FollowUp, followUp => followUp.followUpMedias)
   @JoinColumn({ name: 'follow_up_id' })

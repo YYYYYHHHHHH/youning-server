@@ -8,6 +8,7 @@ import { CreateSalesProjectDto, UpdateSalesProjectDto } from './sales-project.dt
 import { BusinessException } from '../common/exceptions/business.exception';
 import { Authority } from '../person/person.enum';
 import { Progress } from '../follow-up/follow-up.enum';
+import { FollowUp } from '../follow-up/follow-up.entity';
 
 @Injectable()
 export class SalesProjectService {
@@ -18,22 +19,39 @@ export class SalesProjectService {
     private personRepository: Repository<Person>,
     @InjectRepository(Media)
     private mediaRepository: Repository<Media>,
+    @InjectRepository(FollowUp)
+    private followUpRepository: Repository<FollowUp>,
   ) {}
 
   async findAll(): Promise<SalesProject[]> {
-    return this.salesProjectRepository.find({
+    const projects = await this.salesProjectRepository.find({
       relations: ['salesman', 'media', 'contracts', 'followUps', 'projectPhotos'],
       order: {
         createTime: 'DESC',
       },
     });
+    
+    // 为每个项目添加最新更新时间信息
+    for (const project of projects) {
+      project['updateTime'] = await this.getLatestUpdateTime(project.id);
+    }
+    
+    return projects;
   }
 
   async findOne(id: number): Promise<SalesProject> {
-    const salesProject = await this.salesProjectRepository.findOne({
-      where: { id },
-      relations: ['salesman', 'media', 'contracts', 'followUps', 'projectPhotos'],
-    });
+    // 使用QueryBuilder实现关联查询，包括跟进记录的创建人信息
+    const salesProject = await this.salesProjectRepository
+      .createQueryBuilder('salesProject')// 创建查询构建器，'salesProject'是主实体的别名
+      .leftJoinAndSelect('salesProject.salesman', 'salesman')// 关联销售人员信息并选择所有字段
+      .leftJoinAndSelect('salesProject.media', 'media')// 关联媒体信息并选择所有字段
+      .leftJoinAndSelect('salesProject.contracts', 'contracts')// 关联合同信息并选择所有字段
+      .leftJoinAndSelect('salesProject.projectPhotos', 'projectPhotos')// 关联项目照片并选择所有字段
+      .leftJoinAndSelect('salesProject.followUps', 'followUps') // 关联跟进记录并选择所有字段
+      .leftJoin('followUps.createBy', 'createBy')// 关联跟进记录的创建人，但不自动选择所有字段
+      .addSelect('createBy.name')// 只选择创建人的名字字段，减少数据传输量
+      .where('salesProject.id = :id', { id })// 根据ID筛选特定销售项目
+      .getOne(); // 执行查询并获取单个结果
 
     if (!salesProject) {
       throw new BusinessException(
@@ -41,6 +59,9 @@ export class SalesProjectService {
         HttpStatus.NOT_FOUND,
       );
     }
+    
+    // 添加最新更新时间信息
+    salesProject['updateTime'] = await this.getLatestUpdateTime(id);
 
     return salesProject;
   }
@@ -85,7 +106,35 @@ export class SalesProjectService {
       media,
     });
 
-    return this.salesProjectRepository.save(salesProject);
+    // 保存销售项目
+    const savedProject = await this.salesProjectRepository.save(salesProject);
+    
+    // 创建初始跟进记录
+    const followUp = this.followUpRepository.create({
+      progress: Progress.NEW, // 使用'新建'状态
+      remark: '项目创建',
+      followUpTime: new Date(),
+      salesProject: savedProject,
+      createById: salesman.id,
+    });
+    
+    // 保存跟进记录
+    const savedFollowUp = await this.followUpRepository.save(followUp);
+    
+    // 重新查询销售项目，包含跟进记录
+    const result = await this.salesProjectRepository.findOne({
+      where: { id: savedProject.id },
+      relations: ['salesman', 'media', 'contracts', 'followUps', 'projectPhotos'],
+    });
+    
+    if (!result) {
+      throw new BusinessException(
+        `创建后无法找到销售项目ID ${savedProject.id}`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    
+    return result;
   }
 
   async update(
@@ -129,7 +178,6 @@ export class SalesProjectService {
     // 更新实体
     Object.assign(salesProject, {
       ...updateDto,
-      updateTime: new Date(),
       salesman,
       media,
     });
@@ -158,5 +206,28 @@ export class SalesProjectService {
     )[0];
 
     return latestFollowUp.progress;
+  }
+  
+  /**
+   * 获取销售项目的最新更新时间（基于最新的跟进记录时间）
+   * @param id 销售项目ID
+   * @returns 最新更新时间，如果没有跟进记录则返回null
+   */
+  async getLatestUpdateTime(id: number): Promise<Date | null> {
+    const salesProject = await this.salesProjectRepository.findOne({
+      where: { id },
+      relations: ['followUps'],
+    });
+
+    if (!salesProject || !salesProject.followUps || salesProject.followUps.length === 0) {
+      return null;
+    }
+
+    // 按照跟进时间降序排序，获取最新的跟进时间
+    const latestFollowUp = salesProject.followUps.sort(
+      (a, b) => b.followUpTime.getTime() - a.followUpTime.getTime(),
+    )[0];
+
+    return latestFollowUp.followUpTime;
   }
 }

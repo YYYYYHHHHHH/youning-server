@@ -137,8 +137,9 @@ export class ProjectReportPersonService {
         'SUM(projectReportPerson.workDays) as totalWorkDays',// 计算总工作天数
         'SUM(projectReportPerson.extraHours) as totalExtraHours'// 计算总加班小时数
       ])
-      .groupBy('person.id')// 按人员ID分组
-      .addGroupBy('person.name')// 需要显示的字段都要加入分组
+      .groupBy('person.id')// - 主要分组键，按人员ID进行分组，确保每个人员只生成一条汇总记录
+      // 这些是补充的分组字段
+      .addGroupBy('person.name')
       .addGroupBy('person.authority')
       .addGroupBy('icon.uri')
       .getRawMany();// 获取原始查询结果

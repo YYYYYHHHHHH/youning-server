@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+import { Exclude } from 'class-transformer';
 import { Person } from '../person/person.entity';
 import { Media } from '../media/media.entity';
 import { Contract } from '../contract/contract.entity';
@@ -26,9 +27,6 @@ export class SalesProject {
   @Column({ type: 'datetime' })
   createTime: Date;
 
-  @Column({ type: 'datetime', nullable: true })
-  updateTime: Date;
-
   @ManyToOne(() => Person, { eager: true })
   @JoinColumn({ name: 'salesman_id' })
   salesman: Person;
@@ -45,4 +43,7 @@ export class SalesProject {
 
   @OneToMany(() => ProjectPhoto, projectPhoto => projectPhoto.salesProject)
   projectPhotos: ProjectPhoto[];
+
+  @Exclude()
+  updateTime?: Date | null;
 }

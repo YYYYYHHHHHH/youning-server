@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { SalesProject } from '../sales-project/sales-project.entity';
 import { Media } from '../media/media.entity';
 
@@ -6,9 +6,6 @@ import { Media } from '../media/media.entity';
 export class ProjectPhoto {
   @PrimaryGeneratedColumn()
   id: number;
-
-  @Column({ type: 'datetime' })
-  createTime: Date;
 
   @ManyToOne(() => SalesProject, salesProject => salesProject.projectPhotos)
   @JoinColumn({ name: 'sales_project_id' })

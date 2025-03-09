@@ -57,13 +57,4 @@ export class CreateSalesProjectDto {
   mediaId: number;
 }
 
-export class UpdateSalesProjectDto extends CreateSalesProjectDto {
-  @ApiProperty({
-    description: '更新时间',
-    required: false,
-    example: '2024-01-01T10:00:00Z',
-  })
-  @IsOptional()
-  @IsDateString()
-  updateTime?: Date;
-}
+export class UpdateSalesProjectDto extends CreateSalesProjectDto {}

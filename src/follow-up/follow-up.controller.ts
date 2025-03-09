@@ -84,8 +84,9 @@ export class FollowUpController {
         summary: '示例 - 创建跟进记录',
         value: {
           salesProjectId: 1,
-          content: '客户对项目表示满意',
-          nextFollowUpDate: '2024-01-20'
+          createById: 1,
+          progress: '拜访',
+          remark: '客户对项目表示满意',
         }
       }
     }

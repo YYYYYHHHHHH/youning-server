@@ -17,7 +17,6 @@ export class ProjectPhotoService {
     const projectPhoto = new ProjectPhoto();
     projectPhoto.salesProject = { id: salesProjectId } as any;
     projectPhoto.media = { id: mediaId } as any;
-    projectPhoto.createTime = new Date();
     return this.projectPhotoRepository.save(projectPhoto);
   }
 
