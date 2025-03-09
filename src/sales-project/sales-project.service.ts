@@ -40,7 +40,7 @@ export class SalesProjectService {
   }
 
   async findOne(id: number): Promise<SalesProject> {
-    // 使用QueryBuilder实现关联查询，包括跟进记录的创建人信息
+    // 使用QueryBuilder实现关联查询，包括跟进记录的创建人信息和图片信息
     const salesProject = await this.salesProjectRepository
       .createQueryBuilder('salesProject')// 创建查询构建器，'salesProject'是主实体的别名
       .leftJoinAndSelect('salesProject.salesman', 'salesman')// 关联销售人员信息并选择所有字段
@@ -48,6 +48,8 @@ export class SalesProjectService {
       .leftJoinAndSelect('salesProject.contracts', 'contracts')// 关联合同信息并选择所有字段
       .leftJoinAndSelect('salesProject.projectPhotos', 'projectPhotos')// 关联项目照片并选择所有字段
       .leftJoinAndSelect('salesProject.followUps', 'followUps') // 关联跟进记录并选择所有字段
+      .leftJoinAndSelect('followUps.followUpMedias', 'followUpMedias') // 关联跟进记录的图片关联信息
+      .leftJoinAndSelect('followUpMedias.media', 'followUpMedia') // 关联跟进记录的具体图片信息
       .leftJoin('followUps.createBy', 'createBy')// 关联跟进记录的创建人，但不自动选择所有字段
       .addSelect('createBy.name')// 只选择创建人的名字字段，减少数据传输量
       .where('salesProject.id = :id', { id })// 根据ID筛选特定销售项目
