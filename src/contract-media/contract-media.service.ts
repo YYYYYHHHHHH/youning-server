@@ -17,7 +17,6 @@ export class ContractMediaService {
     const contractMedia = new ContractMedia();
     contractMedia.contract = { id: contractId } as any;
     contractMedia.media = { id: mediaId } as any;
-    contractMedia.createTime = new Date();
     return this.contractMediaRepository.save(contractMedia);
   }
 
@@ -68,6 +67,24 @@ export class ContractMediaService {
   async remove(id: number): Promise<void> {
     const contractMedia = await this.findOne(id);
     // findOne方法已经处理了不存在的情况，这里不需要再检查
+
+    await this.contractMediaRepository.remove(contractMedia);
+  }
+
+  async removeByContractAndMedia(contractId: number, mediaId: number): Promise<void> {
+    const contractMedia = await this.contractMediaRepository.findOne({
+      where: {
+        contract: { id: contractId },
+        media: { id: mediaId },
+      },
+    });
+
+    if (!contractMedia) {
+      throw new BusinessException(
+        `未找到合同ID ${contractId} 和媒体ID ${mediaId} 的关联关系`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
 
     await this.contractMediaRepository.remove(contractMedia);
   }

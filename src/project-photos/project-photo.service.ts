@@ -29,7 +29,7 @@ export class ProjectPhotoService {
   async findBySalesProjectId(salesProjectId: number): Promise<ProjectPhoto[]> {
     return this.projectPhotoRepository.find({
       where: { salesProject: { id: salesProjectId } },
-      relations: ['salesProject', 'media'],
+      relations: ['media'],
     });
   }
 

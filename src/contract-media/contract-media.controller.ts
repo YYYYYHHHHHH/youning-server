@@ -148,4 +148,30 @@ export class ContractMediaController {
   async remove(@Param('id') id: number): Promise<void> {
     return this.contractMediaService.remove(id);
   }
+
+  @Delete('contract/:contractId/media/:mediaId')
+  @ApiOperation({ 
+    summary: '删除合同和媒体的关联关系',
+    description: '根据合同ID和媒体ID删除它们之间的关联关系。'
+  })
+  @ApiParam({
+    name: 'contractId',
+    description: '合同ID',
+    type: 'number',
+    example: 1
+  })
+  @ApiParam({
+    name: 'mediaId',
+    description: '媒体ID',
+    type: 'number',
+    example: 1
+  })
+  @ApiResponse({ status: 200, description: '成功删除关联关系' })
+  @ApiResponse({ status: 404, description: '关联关系未找到' })
+  async removeByContractAndMedia(
+    @Param('contractId') contractId: number,
+    @Param('mediaId') mediaId: number,
+  ): Promise<void> {
+    await this.contractMediaService.removeByContractAndMedia(contractId, mediaId);
+  }
 }

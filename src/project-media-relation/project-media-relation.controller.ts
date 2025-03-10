@@ -12,7 +12,7 @@ export class ProjectMediaRelationController {
   ) {}
 
   @ApiOperation({
-    summary: '获取项目的所有媒体文件',
+    summary: '根据项目ID获取该项目关联的所有媒体文件列表',
     description: '根据项目ID获取该项目关联的所有媒体文件列表',
   })
   @ApiParam({

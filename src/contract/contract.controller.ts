@@ -58,7 +58,6 @@ export class ContractController {
   @ApiResponse({ 
     status: 200, 
     description: '成功获取销售项目相关合同列表，包含完整的合同信息。',
-    type: [Contract]
   })
   @ApiResponse({ status: 404, description: '销售项目未找到' })
   async findBySalesProject(@Param('salesProjectId') salesProjectId: number): Promise<Contract[]> {
@@ -74,7 +73,6 @@ export class ContractController {
   @ApiResponse({ 
     status: 201, 
     description: '成功创建合同',
-    type: Contract
   })
   @ApiBody({ 
     type: CreateContractDto,
@@ -84,10 +82,15 @@ export class ContractController {
         summary: '示例 - 创建合同',
         value: {
           salesProjectId: 1,
-          contractNumber: 'HT-2024-001',
+          partyAName: '张三',
+          partyAPhone: '13800138000',
           contractAmount: 50000,
-          signDate: '2024-01-15',
-          description: '某小区防水工程合同'
+          startDate: '2024-01-20',
+          endDate: '2024-03-20',
+          signatoryId: 1,
+          constructionSite: '某市某区某小区A栋',
+          signingTime: '2024-01-15',
+          remarks: '包含地下室防水和屋顶防水工程',
         }
       }
     }
@@ -98,8 +101,8 @@ export class ContractController {
 
   @Put(':id')
   @ApiOperation({ 
-    summary: '更新合同信息',
-    description: '更新现有合同的信息。'
+    summary: '更新合同',
+    description: '根据ID更新合同信息。'
   })
   @ApiParam({
     name: 'id',
@@ -120,16 +123,21 @@ export class ContractController {
       example1: {
         summary: '示例 - 更新合同',
         value: {
-          contractAmount: 55000,
-          description: '某小区防水工程合同（修改后）'
+          salesProjectId: 1,
+          partyAName: '李四',
+          partyAPhone: '13900139000',
+          contractAmount: 60000,
+          startDate: '2024-02-01',
+          endDate: '2024-04-01',
+          signatoryId: 2,
+          constructionSite: '某市某区某小区B栋',
+          signingTime: '2024-01-20',
+          remarks: '增加了卫生间防水工程'
         }
       }
     }
   })
-  async update(
-    @Param('id') id: number,
-    @Body() updateDto: UpdateContractDto,
-  ): Promise<Contract> {
+  async update(@Param('id') id: number, @Body() updateDto: UpdateContractDto): Promise<Contract> {
     return this.contractService.update(id, updateDto);
   }
 

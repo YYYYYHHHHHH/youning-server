@@ -50,13 +50,13 @@ export class CreateContractDto {
   endDate: Date;
 
   @ApiProperty({
-    description: '签约人',
+    description: '签约人ID',
     required: true,
-    example: '李四',
+    example: 1,
   })
-  @IsNotEmpty({ message: '签约人不能为空' })
-  @IsString()
-  signatory: string;
+  @IsNotEmpty({ message: '签约人ID不能为空' })
+  @IsNumber()
+  signatoryId: number;
 
   @ApiProperty({
     description: '工程地点',

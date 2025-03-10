@@ -1,6 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
 import { SalesProject } from '../sales-project/sales-project.entity';
 import { ContractMedia } from '../contract-media/contract-media.entity';
+import { Person } from '../person/person.entity';
 
 @Entity('contracts')
 export class Contract {
@@ -22,8 +23,9 @@ export class Contract {
   @Column({ type: 'date' })
   endDate: Date;
 
-  @Column({ length: 50 })
-  signatory: string;
+  @ManyToOne(() => Person)
+  @JoinColumn({ name: 'signatory_id' })
+  signatory: Person;
 
   @Column({ length: 200 })
   constructionSite: string;

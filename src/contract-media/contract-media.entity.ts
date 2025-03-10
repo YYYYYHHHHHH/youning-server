@@ -7,11 +7,9 @@ export class ContractMedia {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: 'datetime' })
-  createTime: Date;
-
-  @ManyToOne(() => Contract, contract => contract.contractMedias)
-  @JoinColumn({ name: 'contract_id' })
+  @ManyToOne(() => Contract, contract => contract.contractMedias, {
+    onDelete: 'CASCADE',
+  })
   contract: Contract;
 
   @ManyToOne(() => Media)

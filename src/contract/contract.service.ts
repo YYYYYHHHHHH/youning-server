@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Contract } from './contract.entity';
 import { SalesProject } from '../sales-project/sales-project.entity';
+import { Person } from '../person/person.entity';
 import { CreateContractDto, UpdateContractDto } from './contract.dto';
 import { BusinessException } from '../common/exceptions/business.exception';
 
@@ -13,11 +14,13 @@ export class ContractService {
     private contractRepository: Repository<Contract>,
     @InjectRepository(SalesProject)
     private salesProjectRepository: Repository<SalesProject>,
+    @InjectRepository(Person)
+    private personRepository: Repository<Person>,
   ) {}
 
   async findAll(): Promise<Contract[]> {
     return this.contractRepository.find({
-      relations: ['salesProject', 'contractMedias', 'contractMedias.media'],
+      relations: ['salesProject', 'contractMedias', 'contractMedias.media', 'signatory'],
       order: {
         signingTime: 'DESC',
       },
@@ -27,7 +30,7 @@ export class ContractService {
   async findOne(id: number): Promise<Contract> {
     const contract = await this.contractRepository.findOne({
       where: { id },
-      relations: ['salesProject', 'contractMedias', 'contractMedias.media'],
+      relations: ['salesProject', 'contractMedias', 'contractMedias.media', 'signatory'],
     });
 
     if (!contract) {
@@ -54,7 +57,7 @@ export class ContractService {
 
     return this.contractRepository.find({
       where: { salesProject: { id: salesProjectId } },
-      relations: ['salesProject', 'contractMedias', 'contractMedias.media'],
+      relations: ['salesProject', 'contractMedias', 'contractMedias.media', 'signatory'],
       order: {
         signingTime: 'DESC',
       },
@@ -74,6 +77,18 @@ export class ContractService {
       );
     }
 
+    // 验证签约人是否存在
+    const signatory = await this.personRepository.findOne({
+      where: { id: createDto.signatoryId },
+    });
+
+    if (!signatory) {
+      throw new BusinessException(
+        `签约人ID ${createDto.signatoryId} 不存在`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     // 验证工期开始时间不能晚于结束时间
     const startDate = new Date(createDto.startDate);
     const endDate = new Date(createDto.endDate);
@@ -87,6 +102,7 @@ export class ContractService {
     const contract = this.contractRepository.create({
       ...createDto,
       salesProject,
+      signatory,
     });
 
     return this.contractRepository.save(contract);
@@ -107,6 +123,18 @@ export class ContractService {
       );
     }
 
+    // 验证签约人是否存在
+    const signatory = await this.personRepository.findOne({
+      where: { id: updateDto.signatoryId },
+    });
+
+    if (!signatory) {
+      throw new BusinessException(
+        `签约人ID ${updateDto.signatoryId} 不存在`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
     // 验证工期开始时间不能晚于结束时间
     const startDate = new Date(updateDto.startDate);
     const endDate = new Date(updateDto.endDate);
@@ -121,6 +149,7 @@ export class ContractService {
     Object.assign(contract, {
       ...updateDto,
       salesProject,
+      signatory,
     });
 
     return this.contractRepository.save(contract);
