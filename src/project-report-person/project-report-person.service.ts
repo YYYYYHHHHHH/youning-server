@@ -20,7 +20,7 @@ export class ProjectReportPersonService {
 
   findAll(): Promise<ProjectReportPerson[]> {
     return this.projectReportPersonRepository.find({
-      relations: ['projectReport', 'person'],
+      relations: ['projectReport', 'projectReport.project','person'],
     });
   }
 
