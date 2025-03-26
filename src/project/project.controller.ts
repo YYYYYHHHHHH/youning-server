@@ -68,7 +68,14 @@ export class ProjectController {
   @Delete(':id')
   @ApiOperation({ summary: '删除项目' })
   @ApiResponse({ status: 204, description: '成功删除项目' })
-  remove(@Param('id') id: string): Promise<void> {
+  @ApiResponse({ status: 404, description: '项目未找到' })
+  @ApiResponse({ status: 400, description: '无法删除项目，该项目已有日报记录关联' })
+  @ApiResponse({ status: 500, description: '删除失败，可能由于外键约束等原因' })
+  async remove(@Param('id') id: string): Promise<void> {
+    const project = await this.projectService.findOne(+id);
+    if (!project) {
+      throw new NotFoundException(`Project with ID ${id} not found`);
+    }
     return this.projectService.remove(+id);
   }
 }
