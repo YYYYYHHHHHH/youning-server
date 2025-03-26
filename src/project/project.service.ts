@@ -6,6 +6,7 @@ import { CreateProjectDto } from './project.dto';
 import { Media } from '../media/media.entity';
 import { Person } from '../person/person.entity';
 import { BusinessException } from '../common/exceptions/business.exception';
+import { ProjectReport } from '../project-report/project-report.entity';
 
 @Injectable()
 export class ProjectService {
@@ -16,6 +17,8 @@ export class ProjectService {
     private mediaRepository: Repository<Media>,
     @InjectRepository(Person)
     private personRepository: Repository<Person>,
+    @InjectRepository(ProjectReport)
+    private projectReportRepository: Repository<ProjectReport>,
   ) {}
 
   async findAll(): Promise<Project[]> {
@@ -183,6 +186,32 @@ export class ProjectService {
   }
 
   async remove(id: number): Promise<void> {
+    // 先检查项目是否存在
+    const project = await this.projectRepository.findOne({
+      where: { id },
+    });
+    
+    if (!project) {
+      throw new BusinessException(
+        `项目ID ${id} 不存在`,
+        HttpStatus.NOT_FOUND,
+      );
+    }
+    
+    // 检查是否有关联的日报记录
+    const projectReports = await this.projectReportRepository.find({
+      where: { project: { id } },
+      take: 1, // 只需要查询是否存在，不需要获取所有记录
+    });
+    
+    if (projectReports.length > 0) {
+      throw new BusinessException(
+        `无法删除项目，该项目已有日报记录关联`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    
+    // 如果没有关联的日报记录，则可以删除项目
     await this.projectRepository.delete(id);
   }
 }
