@@ -5,8 +5,11 @@ import { Person } from './person.entity';
 import { Media } from '../media/media.entity';
 import { CreatePersonDto } from './person.dto';
 import { LoginDto } from './login.dto';
+import { UpdatePersonDto } from './update-person.dto';
 import { BusinessException } from '../common/exceptions/business.exception';
-import * as bcrypt from 'bcrypt';//哈希库，用于加密密码
+// 导入bcrypt库，用于密码加密
+// bcrypt是一个强大的密码哈希算法库，它会自动处理盐值的生成和存储
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class PersonService {
@@ -17,15 +20,34 @@ export class PersonService {
     private mediaRepository: Repository<Media>,
   ) {}
 
-  findAll(): Promise<Person[]> {
-    return this.personRepository.find({ relations: ['icon'] });
+  async findAll(): Promise<Person[]> {
+    // 查询所有用户信息，同时加载关联的头像信息
+    const persons = await this.personRepository.find({ relations: ['icon'] });
+    // 移除密码字段，提高安全性
+    return persons.map(person => {
+      // 使用对象解构：
+      // 1. password: 提取password属性
+      // 2. ...personWithoutPassword: 将剩余的所有属性收集到新对象中
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { password, ...personWithoutPassword } = person;
+      return personWithoutPassword as Person;
+    });
   }
 
-  findOne(id: number): Promise<Person | null> {
-    return this.personRepository.findOne({
+  async findOne(id: number): Promise<Person | null> {
+    const person = await this.personRepository.findOne({
       where: { id },
       relations: ['icon'],
     });
+    
+    if (!person) {
+      return null;
+    }
+    
+    // 移除密码字段，提高安全性
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, ...personWithoutPassword } = person;
+    return personWithoutPassword as Person;
   }
 
   async create(createPersonDto: CreatePersonDto): Promise<Person> {
@@ -49,14 +71,16 @@ export class PersonService {
       );
     }
 
-    // 加密密码
-    // const salt = await bcrypt.genSalt();
-    // const hashedPassword = await bcrypt.hash(createPersonDto.password, salt);
+    // 使用bcrypt加密密码
+    // 1. 生成随机盐值，用于增加密码的安全性
+    const salt = await bcrypt.genSalt();
+    // 2. 使用盐值对密码进行哈希加密，生成加密后的密码
+    // bcrypt.hash方法会将盐值和哈希后的密码组合在一起存储
+    const hashedPassword = await bcrypt.hash(createPersonDto.password, salt);
 
     // 设置基本信息
     person.name = createPersonDto.name;
-    // person.password = hashedPassword;
-    person.password = createPersonDto.password; // 直接使用明文密码
+    person.password = hashedPassword;//使用加密以后的密码
     person.authority = createPersonDto.authority;
     person.phone = createPersonDto.phone;
     person.create_time = new Date(); // 自动设置创建时间
@@ -93,7 +117,7 @@ export class PersonService {
 
   async update(
     id: number,
-    updatePersonDto: CreatePersonDto,
+    updatePersonDto: UpdatePersonDto,
   ): Promise<Person | null> {
     const person = await this.personRepository.findOne({
       where: { id },
@@ -120,17 +144,19 @@ export class PersonService {
       }
     }
 
-    // 如果更新密码，需要重新加密
-    if (updatePersonDto.password) {
-      // const salt = await bcrypt.genSalt();
-      // updatePersonDto.password = await bcrypt.hash(
-      //   updatePersonDto.password,
-      //   salt,
-      // );
-      person.password = updatePersonDto.password; // 直接使用明文密码
-    }
+    // 从DTO中解构出密码，创建一个不包含密码的新对象
+    const { password: newPassword, ...updatePersonDtoWithoutPassword } = updatePersonDto;
 
-    Object.assign(person, updatePersonDto);
+    // 使用不包含密码的对象更新person
+    Object.assign(person, updatePersonDtoWithoutPassword);
+
+    // 如果提供了新密码，则需要重新加密
+    if (newPassword && newPassword !== person.password) {
+      // 1. 生成新的随机盐值
+      const salt = await bcrypt.genSalt();
+      // 2. 使用新的盐值对新密码进行哈希加密
+      person.password = await bcrypt.hash(newPassword, salt);
+    }
 
     if (updatePersonDto.icon) {
       const media = await this.mediaRepository.findOneBy({
@@ -189,13 +215,14 @@ export class PersonService {
       throw new BusinessException('手机号或密码错误', HttpStatus.UNAUTHORIZED);
     }
 
-    // 验证密码
-    // const isPasswordValid = await bcrypt.compare(
-    //   loginDto.password,
-    //   person.password,
-    // );
-    // if (!isPasswordValid) {
-    if (loginDto.password !== person.password) { // 直接比较明文密码
+    // 验证用户输入的密码是否正确
+    // bcrypt.compare方法会自动从数据库中的哈希值提取盐值，
+    // 然后使用相同的盐值对用户输入的密码进行哈希，并比较结果
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password, // 用户输入的原始密码
+      person.password,   // 数据库中存储的哈希密码
+    );
+    if (!isPasswordValid) {
       throw new BusinessException('手机号或密码错误', HttpStatus.UNAUTHORIZED);
     }
 

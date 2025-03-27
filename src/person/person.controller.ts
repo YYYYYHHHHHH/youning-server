@@ -13,6 +13,7 @@ import { PersonService } from './person.service';
 import { Person } from './person.entity';
 import { CreatePersonDto } from './person.dto';
 import { LoginDto } from './login.dto';
+import { UpdatePersonDto } from './update-person.dto';
 
 @ApiTags('persons')
 @Controller('persons')
@@ -70,9 +71,9 @@ export class PersonController {
   })
   async update(
     @Param('id') id: string,
-    @Body() createPersonDto: CreatePersonDto,
+    @Body() updatePersonDto: UpdatePersonDto,
   ): Promise<Person> {
-    const updatedPerson = await this.personService.update(+id, createPersonDto);
+    const updatedPerson = await this.personService.update(+id, updatePersonDto);
     if (!updatedPerson) {
       throw new NotFoundException(`Person with ID ${id} not found`);
     }
