@@ -12,6 +12,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
 import { ProjectService } from './project.service';
 import { Project } from './project.entity';
 import { CreateProjectDto } from './project.dto';
+import { SalesProject } from '../sales-project/sales-project.entity';
 
 @ApiTags('projects')
 @Controller('projects')
@@ -77,5 +78,12 @@ export class ProjectController {
       throw new NotFoundException(`Project with ID ${id} not found`);
     }
     return this.projectService.remove(+id);
+  }
+
+  @Get('pending/construction')
+  @ApiOperation({ summary: '获取需要创建施工工地的销售项目' })
+  @ApiResponse({ status: 200, description: '成功获取待创建施工工地的销售项目列表' })
+  async findPendingConstructionProjects(): Promise<SalesProject[]> {
+    return this.projectService.findPendingConstructionProjects();
   }
 }

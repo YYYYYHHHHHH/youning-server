@@ -92,4 +92,13 @@ export class CreateProjectDto {
   })
   @IsOptional()
   status?: ProjectStatus;//status字段类型为可选
+
+  @ApiProperty({
+    description: '销售项目ID',
+    required: false,
+    example: 1,
+  })
+  @IsOptional()
+  @IsNumber({}, { message: '销售项目ID必须是数字' })
+  salesProjectId?: number;
 }
