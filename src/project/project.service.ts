@@ -313,6 +313,8 @@ export class ProjectService {
       .createQueryBuilder('sp')
       .leftJoinAndSelect('sp.followUps', 'fu') // 关联跟进记录
       .leftJoinAndSelect('sp.media', 'media') // 关联媒体信息
+      .leftJoin('fu.createBy', 'createBy') // 关联跟进记录的创建人
+      .addSelect('createBy.name') // 只选择创建人的名字字段
       // .leftJoinAndSelect('sp.salesman', 'salesman') // 关联销售人员信息
       .where(qb => {
         // 子查询：获取每个销售项目的最新跟进记录ID
@@ -332,4 +334,21 @@ export class ProjectService {
     // 3. 过滤掉已经关联到施工工地的销售项目
     return salesProjects.filter(sp => !linkedSalesProjectIds.includes(sp.id));
   }
+
+  /**
+   * 根据销售项目ID查询对应的施工工地信息
+   * @param {number} salesProjectId - 销售项目ID
+   * @returns {Promise<Project | null>} 返回施工工地信息，如果不存在则返回null
+   * @description 此方法用于查询与特定销售项目关联的施工工地信息
+   */
+  async findBySalesProjectId(salesProjectId: number): Promise<Project | null> {
+    // 查询与指定销售项目ID关联的施工工地
+    const project = await this.projectRepository.findOne({
+      where: { salesProjectId },// 使用 salesProjectId 字段进行匹配
+      relations: ['media', 'manager'], // 只返回必要的关联信息
+    });
+
+    return project;
+  }
+
 }
